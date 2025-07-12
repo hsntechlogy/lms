@@ -5,6 +5,7 @@ import humanizeDuration from "humanize-duration";
 import {useAuth,useUser} from '@clerk/clerk-react'
 import axios from 'axios'
 import {toast} from "react-toastify"
+
 export const AppContextProvider = ({ children }) => {
   const currency = import.meta.env.VITE_CURRENCY;
   const [allCourses, setAllCourses] = useState([]);
@@ -13,32 +14,26 @@ export const AppContextProvider = ({ children }) => {
   const [userData, setUserData] = useState(null);    
   const navigate = useNavigate();
   const backendUrl = import.meta.env.VITE_BACKEND_URL
-  const {getToken} =useAuth()
-  const {user} =useUser()
+  const {getToken} = useAuth()
+  const {user} = useUser()
 
   // Fetch all courses
   const fetchAllCourses = async () => {
      try {
       const {data}= await axios.get(backendUrl + '/api/course/all' )
 
-
       if (data.success) {
         setAllCourses(data.course)
       }else{
        toast.error(data.message)
-         
       }
-      } catch (error) {
-        toast.error(error.message)
-         
-      }
+    } catch (error) {
+      toast.error(error.message)
+    }
   };
 
   //fetch UserData
-  if (user && user.publicMetadata && user.publicMetadata.role === 'educator') {
-     setIsEducator(true)
-   }
-   const fetchUserData = async () => {
+  const fetchUserData = async () => {
     try {
         const token = await getToken()
 
@@ -98,38 +93,39 @@ export const AppContextProvider = ({ children }) => {
     return totallectures;
   };
 
-//fetch user enrolledCourses
+  //fetch user enrolledCourses
+  const fetchUserEnrolledCourses = async () => {
+    try {
+        const token = await getToken();
+      const {data} = await axios.get(backendUrl+'/api/user/enrolled-courses',
+        {headers:{Authorization:`Bearer ${token}`}})
 
-const fetchUserEnrolledCourses = async () => {
-try {
-    const token = await getToken();
-  const {data} = await axios.get(backendUrl+'/api/user/enrolled-courses',
-    {headers:{Authorization:`Bearer ${token}`}})
-
-    if (data.success) {
-       setEnrolledCourses(data.enrolledCourses.reverse())
-    }else{
-      toast.error(data.message)
+        if (data.success) {
+           setEnrolledCourses(data.enrolledCourses.reverse())
+        }else{
+          toast.error(data.message)
+        }
+    } catch (error) {
+      toast.error(error.message)
     }
-} catch (error) {
-  toast.error(error.message)
-}
-}
-
+  }
 
   useEffect(() => {
     fetchAllCourses();
-    
   }, []);
-  
 
+  useEffect(() => {
+    if (user && user.publicMetadata && user.publicMetadata.role === 'educator') {
+      setIsEducator(true)
+    }
+  }, [user]);
 
-  useEffect(()=>{
+  useEffect(() => {
     if (user) {
       fetchUserData()
       fetchUserEnrolledCourses()
     }
-  },[user])
+  }, [user])
   
   const value = {
     currency,
@@ -140,7 +136,15 @@ try {
     setIsEducator,
     calculateNoOfLectures,
     calculateCourseDuration,
-    calculateChapterTime,enrolledCourses, setEnrolledCourses,fetchUserEnrolledCourses,backendUrl,userData,setUserData,getToken,fetchAllCourses
+    calculateChapterTime,
+    enrolledCourses, 
+    setEnrolledCourses,
+    fetchUserEnrolledCourses,
+    backendUrl,
+    userData,
+    setUserData,
+    getToken,
+    fetchAllCourses
   };
 
   return (
