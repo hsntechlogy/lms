@@ -1,8 +1,19 @@
 import mongoose from "mongoose"
 
-const connectDB= async ()=> {
-    mongoose.connection.on('connected',()=>console.log('Database Connected'))
+const connectDB = async () => {
+    try {
+        mongoose.connection.on('connected', () => console.log('Database Connected'))
+        mongoose.connection.on('error', (err) => console.log('Database connection error:', err))
 
-    await mongoose.connect(`${process.env.MONGODB_URL}/lms`)
+        await mongoose.connect(process.env.MONGODB_URL, {
+            dbName: 'lms',
+            useNewUrlParser: true,
+            useUnifiedTopology: true,
+        })
+    } catch (error) {
+        console.error('MongoDB connection error:', error)
+        process.exit(1)
+    }
 }
+
 export default connectDB
