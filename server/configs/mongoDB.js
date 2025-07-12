@@ -5,11 +5,7 @@ const connectDB = async () => {
         mongoose.connection.on('connected', () => console.log('Database Connected'))
         mongoose.connection.on('error', (err) => console.log('Database connection error:', err))
 
-        await mongoose.connect(process.env.MONGODB_URL, {
-            dbName: 'lms',
-            useNewUrlParser: true,
-            useUnifiedTopology: true,
-        })
+        await mongoose.connect(`${process.env.MONGODB_URL}/lms`)
     } catch (error) {
         console.error('MongoDB connection error:', error)
         process.exit(1)
