@@ -87,6 +87,24 @@ export const addCourse = async (req, res) => {
             return res.json({ success: false, message: 'Cloudinary configuration missing. Please check your environment variables.' })
         }
 
+        // Ensure the educator exists in the User collection
+        let educatorUser = await User.findById(educatorId);
+        if (!educatorUser) {
+            // Get educator info from Clerk
+            const clerkUser = await clerkClient.users.getUser(educatorId);
+            if (!clerkUser) {
+                return res.json({ success: false, message: 'Educator not found' })
+            }
+            
+            // Create User document if it doesn't exist
+            educatorUser = await User.create({
+                _id: educatorId,
+                name: `${clerkUser.firstName || ''} ${clerkUser.lastName || ''}`.trim() || 'Unknown',
+                email: clerkUser.emailAddresses[0]?.emailAddress || 'No email',
+                imageUrl: clerkUser.imageUrl
+            });
+        }
+
         const parsedCourseData = await JSON.parse(courseData)
         parsedCourseData.educator = educatorId
         parsedCourseData.isPublished = true // Set to true by default

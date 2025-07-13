@@ -1,12 +1,60 @@
 
 import Course from "../models/course.js";
+import User from "../models/Users.js";
+import { clerkClient } from '@clerk/clerk-sdk-node';
+
+// Debug function to get all courses regardless of published status
+export const getAllCoursesDebug = async (req, res) => {
+    try {
+        console.log('Fetching ALL courses (debug)...');
+        const allCourses = await Course.find({}).select(['-courseContent', '-enrolledStudents']).populate({ path: 'educator' })
+        console.log(`Found ${allCourses.length} total courses`);
+        
+        const publishedCourses = allCourses.filter(course => course.isPublished === true);
+        const unpublishedCourses = allCourses.filter(course => course.isPublished !== true);
+        
+        console.log(`Published courses: ${publishedCourses.length}`);
+        console.log(`Unpublished courses: ${unpublishedCourses.length}`);
+        
+        res.json({ 
+            success: true, 
+            allCourses: allCourses,
+            publishedCourses: publishedCourses,
+            unpublishedCourses: unpublishedCourses
+        })
+    } catch (error) {
+        console.error('Error fetching all courses:', error);
+        res.json({ success: false, message: error.message })
+    }
+}
+
 export const getAllCourse = async (req, res) => {
     try {
         console.log('Fetching all published courses...');
-        const courses = await Course.find({ isPublished: true }).select(['-courseContent', '-enrolledStudents']).populate({ path: 'educator' })
+        // Get courses that are either published or don't have isPublished field set
+        const courses = await Course.find({ 
+            $or: [
+                { isPublished: true },
+                { isPublished: { $exists: false } }
+            ]
+        }).select(['-courseContent', '-enrolledStudents']).populate({ 
+            path: 'educator',
+            select: 'name imageUrl'
+        })
         console.log(`Found ${courses.length} courses`);
         
-        res.json({ success: true, course: courses })
+        // Filter out courses without valid educator data
+        const validCourses = courses.filter(course => {
+            if (!course.educator) {
+                console.log(`Course ${course._id} has no educator data`);
+                return false;
+            }
+            return true;
+        });
+        
+        console.log(`Valid courses with educator data: ${validCourses.length}`);
+        
+        res.json({ success: true, course: validCourses })
     } catch (error) {
         console.error('Error fetching courses:', error);
         res.json({ success: false, message: error.message })
@@ -33,5 +81,67 @@ export const getCourseId = async (req, res) => {
         res.json({ success: true, courseData })
     } catch (error) {
         res.json({ success: false, message: error.message })
+    }
+}
+
+// Function to fix courses with missing educator data
+export const fixCoursesWithMissingEducators = async (req, res) => {
+    try {
+        console.log('Fixing courses with missing educator data...');
+        
+        // Get all courses
+        const allCourses = await Course.find({});
+        console.log(`Found ${allCourses.length} total courses`);
+        
+        let fixedCount = 0;
+        let skippedCount = 0;
+        
+        for (const course of allCourses) {
+            if (!course.educator) {
+                console.log(`Course ${course._id} has no educator, skipping...`);
+                skippedCount++;
+                continue;
+            }
+            
+            // Check if educator exists in User collection
+            const educatorUser = await User.findById(course.educator);
+            if (!educatorUser) {
+                console.log(`Creating missing educator user for course ${course._id}`);
+                
+                try {
+                    // Get educator info from Clerk
+                    const clerkUser = await clerkClient.users.getUser(course.educator);
+                    if (clerkUser) {
+                        // Create User document
+                        await User.create({
+                            _id: course.educator,
+                            name: `${clerkUser.firstName || ''} ${clerkUser.lastName || ''}`.trim() || 'Unknown',
+                            email: clerkUser.emailAddresses[0]?.emailAddress || 'No email',
+                            imageUrl: clerkUser.imageUrl
+                        });
+                        fixedCount++;
+                        console.log(`Created educator user for course ${course._id}`);
+                    } else {
+                        console.log(`Clerk user not found for educator ${course.educator}`);
+                        skippedCount++;
+                    }
+                } catch (error) {
+                    console.error(`Error creating educator user for course ${course._id}:`, error);
+                    skippedCount++;
+                }
+            } else {
+                console.log(`Educator user already exists for course ${course._id}`);
+            }
+        }
+        
+        res.json({ 
+            success: true, 
+            message: `Fixed ${fixedCount} courses, skipped ${skippedCount} courses`,
+            fixedCount,
+            skippedCount
+        });
+    } catch (error) {
+        console.error('Error fixing courses:', error);
+        res.json({ success: false, message: error.message });
     }
 }
