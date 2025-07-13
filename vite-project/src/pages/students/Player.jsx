@@ -20,8 +20,14 @@ const Player = () => {
 
   const { enrolledCourses, calculateChapterTime,backendUrl,getToken,userData,fetchUserEnrolledCourses } = useContext(AppContext);
   const { courseId } = useParams();
-  const [progressData,setProgressData]=useState(null)
-  const [initialRating,setInitialRating]=useState(0)
+  const [progressData, setProgressData] = useState(null);
+  const [initialRating, setInitialRating] = useState(0);
+
+  // Function to check if text contains only English characters
+  const isEnglishOnly = (text) => {
+    const englishRegex = /^[a-zA-Z0-9\s.,!?@#$%^&*()_+\-=\[\]{};':"\\|<>\/\n\r]*$/;
+    return englishRegex.test(text);
+  };
 
   // Function to extract YouTube video ID from URL
   const extractVideoId = (url) => {
@@ -133,6 +139,11 @@ const Player = () => {
       return;
     }
 
+    if (!isEnglishOnly(testimonialComment)) {
+      toast.error('Please write your comment in English only');
+      return;
+    }
+
     try {
       const token = await getToken();
       const { data } = await axios.post(
@@ -146,6 +157,22 @@ const Player = () => {
         setTestimonialComment('');
         setShowTestimonialForm(false);
         fetchTestimonials();
+        // Update local course data
+        if (courseData) {
+          const updatedCourse = { ...courseData };
+          const userRating = updatedCourse.courseRatings.find(r => r.userId === userData._id);
+          if (userRating) {
+            updatedCourse.testimonials.push({
+              userId: userData._id,
+              userName: userData.name,
+              userImage: userData.imageUrl,
+              rating: userRating.rating,
+              comment: testimonialComment,
+              createdAt: new Date()
+            });
+            setCourseData(updatedCourse);
+          }
+        }
       } else {
         toast.error(data.message);
       }
@@ -262,22 +289,30 @@ const Player = () => {
                 </button>
                 
                 {showTestimonialForm && (
-                  <div className="mt-4 p-4 border border-gray-300 rounded">
+                  <div className="mt-4 p-4 border border-gray-300 rounded bg-gray-50">
                     <textarea
                       value={testimonialComment}
                       onChange={(e) => setTestimonialComment(e.target.value)}
-                      placeholder="Share your experience with this course (10-500 characters)..."
-                      className="w-full p-2 border border-gray-300 rounded resize-none"
+                      placeholder="Share your experience with this course in English only (10-500 characters)..."
+                      className="w-full p-3 border border-gray-300 rounded resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
                       rows="4"
                       maxLength="500"
                     />
                     <div className="flex justify-between items-center mt-2">
                       <span className="text-sm text-gray-500">
                         {testimonialComment.length}/500 characters
+                        {!isEnglishOnly(testimonialComment) && testimonialComment.length > 0 && (
+                          <span className="text-red-500 ml-2">English only</span>
+                        )}
                       </span>
                       <button
                         onClick={handleAddTestimonial}
-                        className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
+                        disabled={!isEnglishOnly(testimonialComment) || testimonialComment.length < 10}
+                        className={`px-4 py-2 rounded transition-colors ${
+                          isEnglishOnly(testimonialComment) && testimonialComment.length >= 10
+                            ? 'bg-green-600 text-white hover:bg-green-700'
+                            : 'bg-gray-400 text-gray-600 cursor-not-allowed'
+                        }`}
                       >
                         Submit Testimonial
                       </button>
@@ -341,15 +376,19 @@ const Player = () => {
                 iframeClassName="w-full aspect-video"
                 onError={(error) => console.error('YouTube player error:', error)}
               />
-              <div className="flex justify-between items-center mt-1">
-                <p>
+              <div className="flex justify-between items-center mt-4 p-3 bg-gray-50 rounded">
+                <p className="font-medium">
                   {playerData.chapter}.{playerData.lecture} {playerData.lectureTitle}
                 </p>
                 <button 
-                  onClick={()=>markLectureAsCompleted(playerData.lectureId)} 
-                  className="text-blue-600 hover:text-blue-800 font-medium"
+                  onClick={() => markLectureAsCompleted(playerData.lectureId)} 
+                  className={`px-4 py-2 rounded font-medium transition-colors ${
+                    progressData && progressData.lectureCompleted.includes(playerData.lectureId)
+                      ? 'bg-green-600 text-white hover:bg-green-700'
+                      : 'bg-blue-600 text-white hover:bg-blue-700'
+                  }`}
                 >
-                  {progressData&&progressData.lectureCompleted.includes(playerData.lectureId) ? '✓ Completed' : 'Mark as completed'}
+                  {progressData && progressData.lectureCompleted.includes(playerData.lectureId) ? '✓ Completed' : 'Mark as completed'}
                 </button>
               </div>
             </div>
