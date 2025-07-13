@@ -82,11 +82,6 @@ export const addCourse = async (req, res) => {
             return res.json({ success: false, message: 'Thumbnail not Attached' })
         }
 
-        // Check if Cloudinary is properly configured
-        if (!process.env.CLOUDINARY_API_KEY || !process.env.CLOUDINARY_SECRET_KEY || !process.env.CLOUDINARY_NAME) {
-            return res.json({ success: false, message: 'Cloudinary configuration missing. Please check your environment variables.' })
-        }
-
         // Ensure the educator exists in the User collection
         let educatorUser = await User.findById(educatorId);
         if (!educatorUser) {
@@ -112,14 +107,25 @@ export const addCourse = async (req, res) => {
         const newCourse = await Course.create(parsedCourseData)
         
         try {
-            const imageUpload = await cloudinary.uploader.upload(imageFile.path)
+            // Check if Cloudinary is properly configured
+            if (!process.env.CLOUDINARY_API_KEY || !process.env.CLOUDINARY_SECRET_KEY || !process.env.CLOUDINARY_NAME) {
+                throw new Error('Cloudinary not configured');
+            }
+
+            const imageUpload = await cloudinary.uploader.upload(imageFile.path, {
+                folder: 'course-thumbnails',
+                resource_type: 'image',
+                transformation: [
+                    { width: 400, height: 300, crop: 'fill' }
+                ]
+            })
             newCourse.courseThumbnail = imageUpload.secure_url
             await newCourse.save()
             res.json({ success: true, message: 'course Added' })
         } catch (cloudinaryError) {
             console.error('Cloudinary upload error:', cloudinaryError);
-            // If Cloudinary fails, still save the course but with a placeholder image
-            newCourse.courseThumbnail = 'https://via.placeholder.com/400x300?text=Course+Thumbnail'
+            // If Cloudinary fails, use a more reliable placeholder image
+            newCourse.courseThumbnail = 'https://picsum.photos/400/300?random=' + Date.now()
             await newCourse.save()
             res.json({ success: true, message: 'course Added (thumbnail upload failed, using placeholder)' })
         }
@@ -210,70 +216,56 @@ export const getEnrolledStudentsData = async (req, res) => {
 //edit course
 export const editCourse = async (req, res) => {
     try {
-        const { courseId } = req.params;
-        const { courseData } = req.body;
-        const imageFile = req.file;
-        const educatorId = req.auth.userId;
+        const { courseId } = req.params
+        const { courseData } = req.body
+        const imageFile = req.file
+        const educatorId = req.auth.userId
 
         // Check if course exists and belongs to educator
-        const existingCourse = await Course.findById(courseId);
+        const existingCourse = await Course.findById(courseId)
         if (!existingCourse) {
-            return res.json({ success: false, message: 'Course not found' });
+            return res.json({ success: false, message: 'Course not found' })
         }
 
         if (existingCourse.educator !== educatorId) {
-            return res.json({ success: false, message: 'You can only edit your own courses' });
+            return res.json({ success: false, message: 'You can only edit your own courses' })
         }
 
-        // Parse course data
-        const parsedCourseData = JSON.parse(courseData);
+        const parsedCourseData = await JSON.parse(courseData)
         
         // Update course data
-        const updatedCourseData = {
-            ...parsedCourseData,
-            educator: educatorId,
-            isPublished: true
-        };
-
-        // Handle image upload if new image is provided
+        Object.assign(existingCourse, parsedCourseData)
+        
+        // Handle thumbnail upload if new image is provided
         if (imageFile) {
-            // Check if Cloudinary is properly configured
-            if (!process.env.CLOUDINARY_API_KEY || !process.env.CLOUDINARY_SECRET_KEY || !process.env.CLOUDINARY_NAME) {
-                return res.json({ success: false, message: 'Cloudinary configuration missing. Please check your environment variables.' });
-            }
+            try {
+                // Check if Cloudinary is properly configured
+                if (!process.env.CLOUDINARY_API_KEY || !process.env.CLOUDINARY_SECRET_KEY || !process.env.CLOUDINARY_NAME) {
+                    throw new Error('Cloudinary not configured');
+                }
 
-            // Upload new image to Cloudinary
-            const result = await cloudinary.uploader.upload(imageFile.path, {
-                folder: 'course-thumbnails',
-                resource_type: 'auto'
-            });
-
-            updatedCourseData.courseThumbnail = result.secure_url;
-
-            // Delete old image from Cloudinary if it exists
-            if (existingCourse.courseThumbnail && existingCourse.courseThumbnail.includes('cloudinary')) {
-                const publicId = existingCourse.courseThumbnail.split('/').pop().split('.')[0];
-                await cloudinary.uploader.destroy(publicId);
+                const imageUpload = await cloudinary.uploader.upload(imageFile.path, {
+                    folder: 'course-thumbnails',
+                    resource_type: 'image',
+                    transformation: [
+                        { width: 400, height: 300, crop: 'fill' }
+                    ]
+                })
+                existingCourse.courseThumbnail = imageUpload.secure_url
+            } catch (cloudinaryError) {
+                console.error('Cloudinary upload error:', cloudinaryError);
+                // Keep existing thumbnail if upload fails
+                console.log('Keeping existing thumbnail due to Cloudinary error');
             }
         }
 
-        // Update the course
-        const updatedCourse = await Course.findByIdAndUpdate(
-            courseId,
-            updatedCourseData,
-            { new: true, runValidators: true }
-        );
-
-        if (!updatedCourse) {
-            return res.json({ success: false, message: 'Failed to update course' });
-        }
-
-        res.json({ success: true, message: 'Course updated successfully', course: updatedCourse });
+        await existingCourse.save()
+        res.json({ success: true, message: 'Course updated successfully' })
     } catch (error) {
-        console.error('Edit course error:', error);
-        res.json({ success: false, message: error.message });
+        console.error('Error editing course:', error);
+        res.json({ success: false, message: error.message })
     }
-};
+}
 
 //get course for editing
 export const getCourseForEdit = async (req, res) => {

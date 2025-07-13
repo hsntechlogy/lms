@@ -145,3 +145,22 @@ export const fixCoursesWithMissingEducators = async (req, res) => {
         res.json({ success: false, message: error.message });
     }
 }
+
+//get all courses
+export const getAllCourses = async (req, res) => {
+    try {
+        const courses = await Course.find({ isPublished: true }).populate('educator', 'name imageUrl')
+        
+        // Update any courses with failing placeholder URLs
+        for (let course of courses) {
+            if (course.courseThumbnail && course.courseThumbnail.includes('via.placeholder.com')) {
+                course.courseThumbnail = 'https://picsum.photos/400/300?random=' + course._id;
+                await course.save();
+            }
+        }
+        
+        res.json({ success: true, course: courses })
+    } catch (error) {
+        res.json({ success: false, message: error.message })
+    }
+}

@@ -81,6 +81,26 @@ const CourseDetails = () => {
     }
   };
 
+  // Test function for mark as read (for testing purposes)
+  const testMarkAsRead = async (lectureId) => {
+    try {
+      const token = await getToken();
+      const { data } = await axios.post(
+        backendUrl + '/api/user/update-course-progress',
+        { courseId: id, lectureId },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      if (data.success) {
+        toast.success('Test: ' + data.message);
+        getCourseProgress();
+      } else {
+        toast.error('Test failed: ' + data.message);
+      }
+    } catch (error) {
+      toast.error('Test error: ' + error.message);
+    }
+  };
+
   const fetchCourseData = async () => {
     try {
       if (!id) {
@@ -377,6 +397,14 @@ const CourseDetails = () => {
                                   {progressData && progressData.lectureCompleted && progressData.lectureCompleted.includes(lecture.lectureId) ? '✓ Read' : 'Mark as Read'}
                                 </button>
                               )}
+                              {/* Test button for mark as read (always visible for testing) */}
+                              <button
+                                onClick={() => testMarkAsRead(lecture.lectureId)}
+                                className="text-xs px-2 py-1 rounded bg-purple-600 text-white hover:bg-purple-700 transition-colors"
+                                title="Test mark as read functionality"
+                              >
+                                Test Mark
+                              </button>
                               <p>
                                 {humanizeDuration(lecture.lectureDuration * 60 * 1000, {
                                   units: ['h', 'm'],
