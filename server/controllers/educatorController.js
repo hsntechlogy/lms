@@ -206,3 +206,92 @@ export const getEnrolledStudentsData = async (req, res) => {
         res.json({ success: false, message: error.message })
     }
 }
+
+//edit course
+export const editCourse = async (req, res) => {
+    try {
+        const { courseId } = req.params;
+        const { courseData } = req.body;
+        const imageFile = req.file;
+        const educatorId = req.auth.userId;
+
+        // Check if course exists and belongs to educator
+        const existingCourse = await Course.findById(courseId);
+        if (!existingCourse) {
+            return res.json({ success: false, message: 'Course not found' });
+        }
+
+        if (existingCourse.educator !== educatorId) {
+            return res.json({ success: false, message: 'You can only edit your own courses' });
+        }
+
+        // Parse course data
+        const parsedCourseData = JSON.parse(courseData);
+        
+        // Update course data
+        const updatedCourseData = {
+            ...parsedCourseData,
+            educator: educatorId,
+            isPublished: true
+        };
+
+        // Handle image upload if new image is provided
+        if (imageFile) {
+            // Check if Cloudinary is properly configured
+            if (!process.env.CLOUDINARY_API_KEY || !process.env.CLOUDINARY_SECRET_KEY || !process.env.CLOUDINARY_NAME) {
+                return res.json({ success: false, message: 'Cloudinary configuration missing. Please check your environment variables.' });
+            }
+
+            // Upload new image to Cloudinary
+            const result = await cloudinary.uploader.upload(imageFile.path, {
+                folder: 'course-thumbnails',
+                resource_type: 'auto'
+            });
+
+            updatedCourseData.courseThumbnail = result.secure_url;
+
+            // Delete old image from Cloudinary if it exists
+            if (existingCourse.courseThumbnail && existingCourse.courseThumbnail.includes('cloudinary')) {
+                const publicId = existingCourse.courseThumbnail.split('/').pop().split('.')[0];
+                await cloudinary.uploader.destroy(publicId);
+            }
+        }
+
+        // Update the course
+        const updatedCourse = await Course.findByIdAndUpdate(
+            courseId,
+            updatedCourseData,
+            { new: true, runValidators: true }
+        );
+
+        if (!updatedCourse) {
+            return res.json({ success: false, message: 'Failed to update course' });
+        }
+
+        res.json({ success: true, message: 'Course updated successfully', course: updatedCourse });
+    } catch (error) {
+        console.error('Edit course error:', error);
+        res.json({ success: false, message: error.message });
+    }
+};
+
+//get course for editing
+export const getCourseForEdit = async (req, res) => {
+    try {
+        const { courseId } = req.params;
+        const educatorId = req.auth.userId;
+
+        const course = await Course.findById(courseId);
+        if (!course) {
+            return res.json({ success: false, message: 'Course not found' });
+        }
+
+        if (course.educator !== educatorId) {
+            return res.json({ success: false, message: 'You can only view your own courses' });
+        }
+
+        res.json({ success: true, courseData: course });
+    } catch (error) {
+        res.json({ success: false, message: error.message });
+    }
+};

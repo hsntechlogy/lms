@@ -1,13 +1,15 @@
 // vite-project/src/pages/educator/MyCourses.jsx
 import React, { useContext, useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { AppContext } from '../../context/AppContext';
 import Loading from '../../components/students/Loading';
 import { toast } from 'react-toastify';
 
 const MyCourses = () => {
-  const { currency,backendUrl, isEducator,getToken } = useContext(AppContext); // if correct var is `allCourses`, rename it
+  const { currency, backendUrl, isEducator, getToken } = useContext(AppContext);
   const [courses, setCourses] = useState(null);
+  const navigate = useNavigate();
 
   const fetchEducationCourses = async () => {
     try {
@@ -26,6 +28,10 @@ const MyCourses = () => {
     
   }, [isEducator]);
 
+  const handleEditCourse = (courseId) => {
+    navigate(`/educator/edit-course/${courseId}`);
+  };
+
   return courses ? (
     <div className='h-screen flex flex-col items-center justify-between md:p-8 md:pb-0 p-4 pt-8 pb-0'>
       <div className='w-full'>
@@ -38,6 +44,7 @@ const MyCourses = () => {
                 <th className='px-4 py-3 font-semibold truncate'>Earnings</th>
                 <th className='px-4 py-3 font-semibold truncate'>Students</th>
                 <th className='px-4 py-3 font-semibold truncate'>Published On</th>
+                <th className='px-4 py-3 font-semibold truncate'>Actions</th>
               </tr>
             </thead>
             <tbody className='text-sm text-gray-500'>
@@ -57,6 +64,14 @@ const MyCourses = () => {
                   <td className='px-4 py-3'>{course.enrolledStudents.length}</td>
                   <td className='px-4 py-3'>
                     {new Date(course.createdAt).toLocaleDateString()}
+                  </td>
+                  <td className='px-4 py-3'>
+                    <button
+                      onClick={() => handleEditCourse(course._id)}
+                      className='px-3 py-1 bg-blue-600 text-white rounded text-sm hover:bg-blue-700 transition-colors'
+                    >
+                      Edit
+                    </button>
                   </td>
                 </tr>
               ))}

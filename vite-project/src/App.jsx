@@ -9,6 +9,7 @@ import Loading from './components/students/Loading';
 import { ToastContainer } from 'react-toastify';
 import Educator from './pages/educator/Educator';
 import AddCourse from './pages/educator/AddCourse';
+import EditCourse from './pages/educator/EditCourse';
 import MyCourses from './pages/educator/MyCourses';
 import StudentsEnrolled from './pages/educator/StudentsEnrolled';
 import Dashboard from './pages/educator/Dashboard';
@@ -39,6 +40,7 @@ const App = () => {
         <Route path="/educator" element={<Educator />}>
           <Route index element={<Dashboard />} />
           <Route path="add-course" element={<AddCourse />} />
+          <Route path="edit-course/:courseId" element={<EditCourse />} />
           <Route path="my-courses" element={<MyCourses />} />
           <Route path="student-enrolled" element={<StudentsEnrolled />} />
         </Route>

@@ -21,6 +21,7 @@ const CourseDetails = () => {
   const [testimonialComment, setTestimonialComment] = useState('');
   const [testimonials, setTestimonials] = useState([]);
   const [initialRating, setInitialRating] = useState(0);
+  const [progressData, setProgressData] = useState(null);
 
   const {
     allCourses,
@@ -39,6 +40,45 @@ const CourseDetails = () => {
   const isEnglishOnly = (text) => {
     const englishRegex = /^[a-zA-Z0-9\s.,!?@#$%^&*()_+\-=\[\]{};':"\\|<>\/\n\r]*$/;
     return englishRegex.test(text);
+  };
+
+  // Function to get course progress
+  const getCourseProgress = async () => {
+    try {
+      const token = await getToken();
+      const { data } = await axios.post(
+        backendUrl + '/api/user/get-course-progress',
+        { courseId: id },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      if (data.success) {
+        setProgressData(data.progressData);
+      } else {
+        console.log('Progress fetch failed:', data.message);
+      }
+    } catch (error) {
+      console.log('Progress fetch error:', error.message);
+    }
+  };
+
+  // Function to mark lecture as completed
+  const markLectureAsCompleted = async (lectureId) => {
+    try {
+      const token = await getToken();
+      const { data } = await axios.post(
+        backendUrl + '/api/user/update-course-progress',
+        { courseId: id, lectureId },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      if (data.success) {
+        toast.success(data.message);
+        getCourseProgress();
+      } else {
+        toast.error(data.message);
+      }
+    } catch (error) {
+      toast.error(error.message);
+    }
   };
 
   const fetchCourseData = async () => {
@@ -199,6 +239,7 @@ const CourseDetails = () => {
     if (id) {
       fetchCourseData();
       fetchTestimonials();
+      getCourseProgress(); // Fetch progress on mount
     }
   }, [id]);
 
@@ -305,7 +346,7 @@ const CourseDetails = () => {
                       {chapter.chapterContent.map((lecture, i) => (
                         <li key={i} className="flex gap-2 py-1 items-start">
                           <img
-                            src={assets.play_icon}
+                            src={progressData && progressData.lectureCompleted && progressData.lectureCompleted.includes(lecture.lectureId) ? assets.blue_tick_icon : assets.play_icon}
                             alt="play icon"
                             className="w-4 h-4 mt-1"
                           />
@@ -319,10 +360,22 @@ const CourseDetails = () => {
                                       videoId: lecture.lectureUrl.split('/').pop(),
                                     })
                                   }
-                                  className="text-blue-500 cursor-pointer"
+                                  className="text-blue-500 cursor-pointer hover:text-blue-700"
                                 >
                                   Preview
                                 </p>
+                              )}
+                              {isAlreadyEnrolled && (
+                                <button
+                                  onClick={() => markLectureAsCompleted(lecture.lectureId)}
+                                  className={`text-xs px-2 py-1 rounded transition-colors ${
+                                    progressData && progressData.lectureCompleted && progressData.lectureCompleted.includes(lecture.lectureId)
+                                      ? 'bg-green-600 text-white hover:bg-green-700'
+                                      : 'bg-blue-600 text-white hover:bg-blue-700'
+                                  }`}
+                                >
+                                  {progressData && progressData.lectureCompleted && progressData.lectureCompleted.includes(lecture.lectureId) ? '✓ Read' : 'Mark as Read'}
+                                </button>
                               )}
                               <p>
                                 {humanizeDuration(lecture.lectureDuration * 60 * 1000, {
@@ -448,52 +501,6 @@ const CourseDetails = () => {
               className="pt-3 rich-text"
               dangerouslySetInnerHTML={{ __html: courseData.courseDescription }}
             ></p>
-          </div>
-
-          {/* Testimonials Section */}
-          <div className="py-10 text-sm md:text-default">
-            <h3 className="text-xl font-semibold text-gray-800 mb-6">Student Testimonials</h3>
-            {courseData.testimonials && courseData.testimonials.length > 0 ? (
-              <div className="grid gap-4 md:grid-cols-2">
-                {courseData.testimonials.map((testimonial, index) => (
-                  <div key={index} className="border border-gray-300 rounded p-4 bg-gray-50">
-                    <div className="flex items-center gap-3 mb-3">
-                      <img
-                        src={testimonial.userImage || assets.profile_img_1}
-                        alt={testimonial.userName}
-                        className="w-10 h-10 rounded-full"
-                        onError={(e) => {
-                          e.target.src = assets.profile_img_1;
-                        }}
-                      />
-                      <div>
-                        <h4 className="font-semibold">{testimonial.userName}</h4>
-                        <div className="flex items-center gap-1">
-                          {[...Array(5)].map((_, i) => (
-                            <span
-                              key={i}
-                              className={`text-sm ${
-                                i < testimonial.rating ? 'text-yellow-500' : 'text-gray-300'
-                              }`}
-                            >
-                              ★
-                            </span>
-                          ))}
-                        </div>
-                      </div>
-                    </div>
-                    <p className="text-gray-700">{testimonial.comment}</p>
-                    <p className="text-xs text-gray-500 mt-2">
-                      {new Date(testimonial.createdAt).toLocaleDateString()}
-                    </p>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <p className="text-gray-500 text-center py-8">
-                No testimonials yet. Be the first to share your experience after enrolling!
-              </p>
-            )}
           </div>
         </div>
 
