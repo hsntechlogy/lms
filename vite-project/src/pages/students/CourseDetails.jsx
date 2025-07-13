@@ -217,6 +217,52 @@ const CourseDetails = () => {
               dangerouslySetInnerHTML={{ __html: courseData.courseDescription }}
             ></p>
           </div>
+
+          {/* Testimonials Section */}
+          <div className="py-10 text-sm md:text-default">
+            <h3 className="text-xl font-semibold text-gray-800 mb-6">Student Testimonials</h3>
+            {courseData.testimonials && courseData.testimonials.length > 0 ? (
+              <div className="grid gap-4 md:grid-cols-2">
+                {courseData.testimonials.map((testimonial, index) => (
+                  <div key={index} className="border border-gray-300 rounded p-4 bg-gray-50">
+                    <div className="flex items-center gap-3 mb-3">
+                      <img
+                        src={testimonial.userImage || assets.profile_img_1}
+                        alt={testimonial.userName}
+                        className="w-10 h-10 rounded-full"
+                        onError={(e) => {
+                          e.target.src = assets.profile_img_1;
+                        }}
+                      />
+                      <div>
+                        <h4 className="font-semibold">{testimonial.userName}</h4>
+                        <div className="flex items-center gap-1">
+                          {[...Array(5)].map((_, i) => (
+                            <span
+                              key={i}
+                              className={`text-sm ${
+                                i < testimonial.rating ? 'text-yellow-500' : 'text-gray-300'
+                              }`}
+                            >
+                              ★
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                    <p className="text-gray-700">{testimonial.comment}</p>
+                    <p className="text-xs text-gray-500 mt-2">
+                      {new Date(testimonial.createdAt).toLocaleDateString()}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-gray-500 text-center py-8">
+                No testimonials yet. Be the first to share your experience after enrolling!
+              </p>
+            )}
+          </div>
         </div>
 
         {/* Right column */}

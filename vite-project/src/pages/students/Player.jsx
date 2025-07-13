@@ -5,7 +5,7 @@ import humanizeDuration from 'humanize-duration';
 import { assets } from '../../assets/assets';
 import { AppContext } from '../../context/AppContext';
 import Footer from '../../components/students/Footer';
-import Rating from '../../components/students/Rating'; // Assuming Rating is used but not imported
+import Rating from '../../components/students/Rating';
 import { toast } from 'react-toastify';
 import axios from 'axios';
 import Loading from '../../components/students/Loading';
@@ -14,6 +14,9 @@ const Player = () => {
   const [openSections, setOpenSections] = useState({});
   const [playerData, setPlayerData] = useState(null);
   const [courseData, setCourseData] = useState(null);
+  const [showTestimonialForm, setShowTestimonialForm] = useState(false);
+  const [testimonialComment, setTestimonialComment] = useState('');
+  const [testimonials, setTestimonials] = useState([]);
 
   const { enrolledCourses, calculateChapterTime,backendUrl,getToken,userData,fetchUserEnrolledCourses } = useContext(AppContext);
   const { courseId } = useParams();
@@ -77,9 +80,10 @@ const Player = () => {
         toast.error(data.message)
       }
     } catch (error) {
-      toast.success(error.message)
+      toast.error(error.message)
     }
   }
+
   const getCourseProgress =async () => {
     try {
       const token= await getToken()
@@ -95,24 +99,75 @@ const Player = () => {
       
     }
   }
-const handleRate = async (rating) => {
-  try {
-    const token = await getToken()
-    const {data } = await axios.post(backendUrl+'/api/user/add-rating',{courseId,rating},{headers:{Authorization:`Bearer ${token}`}})
 
-     if (data.success){
-        toast.success(data.message)
-        fetchUserEnrolledCourses()
-      }else{
-        toast.error(data.message)
-      }
-  } catch (error) {
-    toast.error(error.message)
+  const handleRate = async (rating) => {
+    try {
+      const token = await getToken()
+      const {data } = await axios.post(backendUrl+'/api/user/add-rating',{courseId,rating},{headers:{Authorization:`Bearer ${token}`}})
+
+       if (data.success){
+          toast.success(data.message)
+          fetchUserEnrolledCourses()
+        }else{
+          toast.error(data.message)
+        }
+    } catch (error) {
+      toast.error(error.message)
+    }
   }
-}
-useEffect(()=>{
-  getCourseProgress()
-},[])
+
+  const fetchTestimonials = async () => {
+    try {
+      const { data } = await axios.get(`${backendUrl}/api/user/testimonials/${courseId}`);
+      if (data.success) {
+        setTestimonials(data.testimonials);
+      }
+    } catch (error) {
+      console.error('Error fetching testimonials:', error);
+    }
+  };
+
+  const handleAddTestimonial = async () => {
+    if (!testimonialComment.trim()) {
+      toast.error('Please enter a comment');
+      return;
+    }
+
+    try {
+      const token = await getToken();
+      const { data } = await axios.post(
+        `${backendUrl}/api/user/add-testimonial`,
+        { courseId, comment: testimonialComment },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      if (data.success) {
+        toast.success(data.message);
+        setTestimonialComment('');
+        setShowTestimonialForm(false);
+        fetchTestimonials();
+      } else {
+        toast.error(data.message);
+      }
+    } catch (error) {
+      toast.error(error.message);
+    }
+  };
+
+  const canAddTestimonial = () => {
+    if (!courseData || !userData) return false;
+    
+    const userRating = courseData.courseRatings.find(r => r.userId === userData._id);
+    const hasTestimonial = courseData.testimonials?.find(t => t.userId === userData._id);
+    
+    return userRating && userRating.rating >= 4 && !hasTestimonial;
+  };
+
+  useEffect(()=>{
+    getCourseProgress()
+    fetchTestimonials()
+  },[])
+
   return courseData ? (
     <>
       <div className="p-4 sm:p-10 flex flex-col-reverse md:grid-cols-2 gap-10 md:px-36">
@@ -192,6 +247,89 @@ useEffect(()=>{
             <h1 className="text-xl font-bold">Rate this course</h1>
             <Rating initialRating={initialRating} onRate={handleRate} />
           </div>
+
+          {/* Testimonials Section */}
+          <div className="mt-10">
+            <h2 className="text-xl font-bold mb-4">Testimonials</h2>
+            
+            {canAddTestimonial() && (
+              <div className="mb-6">
+                <button
+                  onClick={() => setShowTestimonialForm(!showTestimonialForm)}
+                  className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+                >
+                  {showTestimonialForm ? 'Cancel' : 'Add Testimonial'}
+                </button>
+                
+                {showTestimonialForm && (
+                  <div className="mt-4 p-4 border border-gray-300 rounded">
+                    <textarea
+                      value={testimonialComment}
+                      onChange={(e) => setTestimonialComment(e.target.value)}
+                      placeholder="Share your experience with this course (10-500 characters)..."
+                      className="w-full p-2 border border-gray-300 rounded resize-none"
+                      rows="4"
+                      maxLength="500"
+                    />
+                    <div className="flex justify-between items-center mt-2">
+                      <span className="text-sm text-gray-500">
+                        {testimonialComment.length}/500 characters
+                      </span>
+                      <button
+                        onClick={handleAddTestimonial}
+                        className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
+                      >
+                        Submit Testimonial
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Display Testimonials */}
+            <div className="space-y-4">
+              {testimonials.map((testimonial, index) => (
+                <div key={index} className="border border-gray-300 rounded p-4 bg-gray-50">
+                  <div className="flex items-center gap-3 mb-3">
+                    <img
+                      src={testimonial.userImage || assets.profile_img_1}
+                      alt={testimonial.userName}
+                      className="w-10 h-10 rounded-full"
+                      onError={(e) => {
+                        e.target.src = assets.profile_img_1;
+                      }}
+                    />
+                    <div>
+                      <h4 className="font-semibold">{testimonial.userName}</h4>
+                      <div className="flex items-center gap-1">
+                        {[...Array(5)].map((_, i) => (
+                          <span
+                            key={i}
+                            className={`text-sm ${
+                              i < testimonial.rating ? 'text-yellow-500' : 'text-gray-300'
+                            }`}
+                          >
+                            ★
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                  <p className="text-gray-700">{testimonial.comment}</p>
+                  <p className="text-xs text-gray-500 mt-2">
+                    {new Date(testimonial.createdAt).toLocaleDateString()}
+                  </p>
+                </div>
+              ))}
+              
+              {testimonials.length === 0 && (
+                <p className="text-gray-500 text-center py-4">
+                  No testimonials yet. Be the first to share your experience!
+                </p>
+              )}
+            </div>
+          </div>
         </div>
 
         {/* Right Column */}
@@ -207,8 +345,11 @@ useEffect(()=>{
                 <p>
                   {playerData.chapter}.{playerData.lecture} {playerData.lectureTitle}
                 </p>
-                <button onClick={()=>markLectureAsCompleted(playerData.lectureId)} className="text-blue-600">
-                  {progressData&&progressData.lectureCompleted.includes(playerData.lectureId) ? 'completed' : 'Mark completed'}
+                <button 
+                  onClick={()=>markLectureAsCompleted(playerData.lectureId)} 
+                  className="text-blue-600 hover:text-blue-800 font-medium"
+                >
+                  {progressData&&progressData.lectureCompleted.includes(playerData.lectureId) ? '✓ Completed' : 'Mark as completed'}
                 </button>
               </div>
             </div>
