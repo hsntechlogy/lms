@@ -59,24 +59,64 @@ export const userEnrolledCourses = async (req, res) => {
 export const purchaseCourse = async (req, res) => {
     try {
         const { courseId } = req.body;
+        const { origin } = req.headers;
         const userId = req.auth.userId;
 
-        const course = await Course.findById(courseId);
-        if (!course) {
-            return res.json({ success: false, message: 'Course not found' });
+        // Validate courseId
+        if (!courseId || courseId === 'undefined') {
+            return res.json({ success: false, message: 'Invalid course ID' });
         }
 
-        // Check if user is already enrolled
-        if (course.enrolledStudents.includes(userId)) {
+        const userData = await User.findById(userId);
+        const courseData = await Course.findById(courseId);
+
+        if (!userData || !courseData) {
+            return res.json({ success: false, message: 'User or course not found' });
+        }
+
+        // Check if already enrolled
+        if (courseData.enrolledStudents.includes(userId)) {
             return res.json({ success: false, message: 'Already enrolled in this course' });
         }
 
-        // Add user to enrolled students
-        course.enrolledStudents.push(userId);
-        await course.save();
+        const purchaseData = {
+            courseId: courseData._id,
+            userId,
+            amount: (courseData.coursePrice - courseData.discount * courseData.coursePrice / 100).toFixed(2),
+        };
 
-        res.json({ success: true, message: 'Course purchased successfully' });
+        const newPurchase = await Purchase.create(purchaseData);
+
+        // Stripe Gateway Initialize
+        const stripeInstance = new Stripe(process.env.STRIPE_SECRET_KEY);
+        const currency = process.env.CURRENCY.toLowerCase();
+
+        // Creating line items for stripe
+        const line_items = [{
+            price_data: {
+                currency,
+                product_data: {
+                    name: courseData.courseTitle
+                },
+                unit_amount: Math.floor(newPurchase.amount) * 100
+            },
+            quantity: 1
+        }];
+
+        const session = await stripeInstance.checkout.sessions.create({
+            success_url: `${origin}/loading/my-enrollments`,
+            cancel_url: `${origin}/`,
+            line_items: line_items,
+            mode: 'payment',
+            metadata: {
+                purchaseId: newPurchase._id.toString()
+            }
+        });
+
+        res.json({ success: true, session_url: session.url });
+
     } catch (error) {
+        console.error('Purchase error:', error);
         res.json({ success: false, message: error.message });
     }
 };
@@ -85,6 +125,11 @@ export const updateUserCourseProgress = async (req, res) => {
     try {
         const { courseId, lectureId } = req.body;
         const userId = req.auth.userId;
+
+        // Validate courseId
+        if (!courseId || courseId === 'undefined') {
+            return res.json({ success: false, message: 'Invalid course ID' });
+        }
 
         let progress = await CourseProgress.findOne({ userId, courseId });
         
@@ -112,6 +157,18 @@ export const getUserCourseProgress = async (req, res) => {
         const { courseId } = req.body;
         const userId = req.auth.userId;
 
+        // Validate courseId
+        if (!courseId || courseId === 'undefined') {
+            return res.json({ 
+                success: true, 
+                progressData: { 
+                    userId, 
+                    courseId: null, 
+                    lectureCompleted: [] 
+                } 
+            });
+        }
+
         const progress = await CourseProgress.findOne({ userId, courseId });
         
         if (!progress) {
@@ -135,6 +192,11 @@ export const addUserRating = async (req, res) => {
     try {
         const { courseId, rating } = req.body;
         const userId = req.auth.userId;
+
+        // Validate courseId
+        if (!courseId || courseId === 'undefined') {
+            return res.json({ success: false, message: 'Invalid course ID' });
+        }
 
         if (rating < 1 || rating > 5) {
             return res.json({ success: false, message: 'Rating must be between 1 and 5' });
@@ -170,6 +232,11 @@ export const addTestimonial = async (req, res) => {
     try {
         const { courseId, comment } = req.body;
         const userId = req.auth.userId;
+
+        // Validate courseId
+        if (!courseId || courseId === 'undefined') {
+            return res.json({ success: false, message: 'Invalid course ID' });
+        }
 
         // Validate comment
         if (!comment || comment.trim().length < 10) {
@@ -238,6 +305,11 @@ export const addTestimonial = async (req, res) => {
 export const getCourseTestimonials = async (req, res) => {
     try {
         const { courseId } = req.params;
+
+        // Validate courseId
+        if (!courseId || courseId === 'undefined') {
+            return res.json({ success: false, message: 'Invalid course ID' });
+        }
 
         const course = await Course.findById(courseId);
         if (!course) {
