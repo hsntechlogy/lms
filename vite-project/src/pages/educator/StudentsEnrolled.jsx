@@ -1,5 +1,5 @@
 import React from 'react';
-import { useState } from 'react';
+import { useState, useContext } from 'react';
 import { dummyStudentEnrolled } from '../../assets/assets';
 import { useEffect } from 'react';
 import Loading from '../../components/students/Loading';
@@ -14,7 +14,7 @@ const StudentsEnrolled = () => {
   const fetchEnrolledStudents = async () =>{
     try {
       const token = await getToken()
-      const {data} = await axios.get(backendUrl+'/api/educator/enrolled-students',{headers:{Athorization:`Bearer${token}`}})
+      const {data} = await axios.get(backendUrl+'/api/educator/enrolled-students',{headers:{Authorization:`Bearer ${token}`}})
     if (data.success) {
       setEnrolledStudents(data.enrolledStudents.reverse())
     }else{
@@ -50,7 +50,7 @@ const StudentsEnrolled = () => {
             <td className='px-4 py-3 flex items-center space-x-3 '><img src= {item.student.imageUrl} alt='' className='w-9 h-9 rounded-full' />
             <span  className='truncate' >{item.student.name}</span></td>
             <td className='px-4 py-3 truncate'>{item.courseTitle}</td>
-            <td className='px-4 py-3 hidden sm:table-cell'>{new Date(item.purchaseDate).toLocaleDateString()}</td>
+            <td className='px-4 py-3 hidden sm:table-cell'>{new Date(item.purchaseData).toLocaleDateString()}</td>
           </tr>
         ))}
       </tbody>

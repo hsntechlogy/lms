@@ -2,7 +2,19 @@ import mongoose from "mongoose"
 
 const lectureSchema = new mongoose.Schema({
    lectureId:{type:String,required:true}, 
-   lectureDuration:{type:  Number,required:true},
+   lectureDuration:{
+     type: Number,
+     required:true,
+     set: function(value) {
+       // If value is a string, try to parse it
+       if (typeof value === 'string') {
+         // Remove any non-numeric characters except decimal points
+         const numericValue = value.replace(/[^0-9.]/g, '');
+         return parseFloat(numericValue) || 0;
+       }
+       return value;
+     }
+   },
    lectureTitle:{type:String,required:true},
    lectureUrl:{type:  String,required:true},
    isPreviewFree:{type:Boolean,required:true}, 

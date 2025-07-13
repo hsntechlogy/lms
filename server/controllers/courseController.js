@@ -2,10 +2,13 @@
 import Course from "../models/course.js";
 export const getAllCourse = async (req, res) => {
     try {
+        console.log('Fetching all published courses...');
         const courses = await Course.find({ isPublished: true }).select(['-courseContent', '-enrolledStudents']).populate({ path: 'educator' })
-
+        console.log(`Found ${courses.length} courses`);
+        
         res.json({ success: true, course: courses })
     } catch (error) {
+        console.error('Error fetching courses:', error);
         res.json({ success: false, message: error.message })
     }
 }

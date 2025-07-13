@@ -33,12 +33,15 @@ export const addCourse = async (req, res) => {
 
         const parsedCourseData = await JSON.parse(courseData)
         parsedCourseData.educator = educatorId
+        parsedCourseData.isPublished = true // Set to true by default
+        
         const newCourse = await Course.create(parsedCourseData)
         const imageUpload = await cloudinary.uploader.upload(imageFile.path)
         newCourse.courseThumbnail = imageUpload.secure_url
         await newCourse.save()
         res.json({ success: true, message: 'course Added' })
     } catch (error) {
+        console.error('Error adding course:', error);
         res.json({ success: false, message: error.message })
     }
 }

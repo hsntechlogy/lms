@@ -18,7 +18,7 @@ const CourseDetails = () => {
   const [PlayerData, setPlayerData] = useState(null);
 
   const {
-    allcourses,
+    allCourses,
     CalculateRating,
     calculateNoOfLectures,
     calculateCourseDuration,
@@ -27,6 +27,7 @@ const CourseDetails = () => {
     backendUrl,
     userData,
     getToken,
+    enrolledCourses,
   } = useContext(AppContext);
 
   const fetchCourseData = async () => {
@@ -71,10 +72,10 @@ const CourseDetails = () => {
   }, []);
 
   useEffect(() => {
-    if (userData && courseData && userData.enrolledCourses) {
-      setIsAlreadyEnrolled(userData.enrolledCourses.includes(courseData._id));
+    if (userData && courseData && enrolledCourses) {
+      setIsAlreadyEnrolled(enrolledCourses.some(course => course._id === courseData._id));
     }
-  }, [userData, courseData]);
+  }, [userData, courseData, enrolledCourses]);
 
   if (!courseData) return <Loading />;
 

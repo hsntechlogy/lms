@@ -1,5 +1,6 @@
 // vite-project/src/pages/educator/MyCourses.jsx
 import React, { useContext, useEffect, useState } from 'react';
+import axios from 'axios';
 import { AppContext } from '../../context/AppContext';
 import Loading from '../../components/students/Loading';
 import { toast } from 'react-toastify';
@@ -11,8 +12,8 @@ const MyCourses = () => {
   const fetchEducationCourses = async () => {
     try {
       const token = await getToken()
-      const {data} = await axios.get(backendUrl+'/api/educator/courses',{header:{Authorization:`Bearer ${token}`}})
-      data.success && setCourses(data.course)
+      const {data} = await axios.get(backendUrl+'/api/educator/courses',{headers:{Authorization:`Bearer ${token}`}})
+      data.success && setCourses(data.courses)
     } catch (error) {
       toast.error(error.message)
     }
