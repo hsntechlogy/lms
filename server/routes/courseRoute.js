@@ -1,5 +1,5 @@
 import express from "express";
-import { getAllCourse, getAllCoursesDebug, getCourseId, fixCoursesWithMissingEducators } from '../controllers/courseController.js';
+import { getAllCourse, getAllCoursesDebug, getCourseId, fixCoursesWithMissingEducators, updateAllCourseThumbnails } from '../controllers/courseController.js';
 
 const courseRouter = express.Router();
 
@@ -11,6 +11,9 @@ courseRouter.get('/all-debug', getAllCoursesDebug);
 
 // Fix route for courses with missing educator data
 courseRouter.post('/fix-educators', fixCoursesWithMissingEducators);
+
+// Update all course thumbnails
+courseRouter.post('/update-thumbnails', updateAllCourseThumbnails);
 
 // Then define dynamic route
 courseRouter.get('/:id', getCourseId);
