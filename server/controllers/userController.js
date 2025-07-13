@@ -40,7 +40,7 @@ export const getUserData = async (req, res) => {
             });
         }
 
-        res.json({ success: true, userData: user });
+        res.json({ success: true, user: user });
     } catch (error) {
         res.json({ success: false, message: error.message });
     }
@@ -50,7 +50,7 @@ export const userEnrolledCourses = async (req, res) => {
     try {
         const userId = req.auth.userId;
         const courses = await Course.find({ enrolledStudents: userId }).populate('educator');
-        res.json({ success: true, courses });
+        res.json({ success: true, enrolledCourses: courses });
     } catch (error) {
         res.json({ success: false, message: error.message });
     }
