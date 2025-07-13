@@ -5,6 +5,22 @@ import { Purchase } from "../models/Purchase.js";
 import Course from "../models/course.js";
 import { CourseProgress } from "../models/CourseProgress.js";
 
+// List of negative words to filter out
+const negativeWords = [
+    'bad', 'terrible', 'awful', 'horrible', 'worst', 'useless', 'waste', 'disappointing',
+    'poor', 'mediocre', 'boring', 'confusing', 'difficult', 'hard', 'complicated',
+    'expensive', 'overpriced', 'cheap', 'low quality', 'amateur', 'unprofessional',
+    'outdated', 'old', 'broken', 'glitch', 'bug', 'error', 'crash', 'slow',
+    'annoying', 'frustrating', 'irritating', 'stupid', 'dumb', 'idiot', 'moron',
+    'hate', 'dislike', 'disgusting', 'nasty', 'gross', 'ugly', 'hideous'
+];
+
+// Function to check for negative words
+const containsNegativeWords = (text) => {
+    const lowerText = text.toLowerCase();
+    return negativeWords.some(word => lowerText.includes(word));
+};
+
 // get user data
 export const getUserData = async (req, res) => {
     try {
@@ -26,6 +42,10 @@ export const userEnrolledCourses = async (req, res) => {
     try {
         const userId = req.auth.userId
         const userData = await User.findById(userId).populate('enrolledCourses')
+
+        if (!userData) {
+            return res.json({ success: false, message: 'User Not Found' })
+        }
 
         res.json({ success: true, enrolledCourses: userData.enrolledCourses })
     } catch (error) {
@@ -155,5 +175,78 @@ export const addUserRating = async (req, res) => {
         return res.json({ success: true, message: 'ratings added' })
     } catch (error) {
         return res.json({ success: false, message: error.message })
+    }
+}
+
+//add testimonial to course
+export const addTestimonial = async (req, res) => {
+    const userId = req.auth.userId;
+    const { courseId, comment } = req.body;
+
+    if (!courseId || !userId || !comment) {
+        return res.json({ success: false, message: 'Invalid details' })
+    }
+
+    if (comment.length < 10 || comment.length > 500) {
+        return res.json({ success: false, message: 'Comment must be between 10 and 500 characters' })
+    }
+
+    // Check for negative words
+    if (containsNegativeWords(comment)) {
+        return res.json({ success: false, message: 'Comment contains inappropriate language. Please be constructive and respectful.' })
+    }
+
+    try {
+        const course = await Course.findById(courseId)
+        if (!course) {
+            return res.json({ success: false, message: 'Course Not Found' })
+        }
+
+        const user = await User.findById(userId)
+        if (!user || !user.enrolledCourses.includes(courseId)) {
+            return res.json({ success: false, message: 'User has not purchased this course' })
+        }
+
+        // Check if user has rated the course with 4 or 5 stars
+        const userRating = course.courseRatings.find(r => r.userId === userId)
+        if (!userRating || userRating.rating < 4) {
+            return res.json({ success: false, message: 'You can only add testimonials for courses you rated 4 or 5 stars' })
+        }
+
+        // Check if user already added a testimonial
+        const existingTestimonial = course.testimonials.find(t => t.userId === userId)
+        if (existingTestimonial) {
+            return res.json({ success: false, message: 'You have already added a testimonial for this course' })
+        }
+
+        // Add testimonial
+        course.testimonials.push({
+            userId,
+            userName: user.name,
+            userImage: user.imageUrl,
+            rating: userRating.rating,
+            comment
+        })
+
+        await course.save()
+        return res.json({ success: true, message: 'Testimonial added successfully' })
+    } catch (error) {
+        return res.json({ success: false, message: error.message })
+    }
+}
+
+//get course testimonials
+export const getCourseTestimonials = async (req, res) => {
+    try {
+        const { courseId } = req.params;
+        const course = await Course.findById(courseId)
+        
+        if (!course) {
+            return res.json({ success: false, message: 'Course Not Found' })
+        }
+
+        res.json({ success: true, testimonials: course.testimonials })
+    } catch (error) {
+        res.json({ success: false, message: error.message })
     }
 }

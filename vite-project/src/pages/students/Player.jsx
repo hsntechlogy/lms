@@ -20,12 +20,32 @@ const Player = () => {
   const [progressData,setProgressData]=useState(null)
   const [initialRating,setInitialRating]=useState(0)
 
+  // Function to extract YouTube video ID from URL
+  const extractVideoId = (url) => {
+    if (!url) return '';
+    
+    // Handle different YouTube URL formats
+    const patterns = [
+      /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([^&\n?#]+)/,
+      /youtube\.com\/v\/([^&\n?#]+)/,
+      /youtube\.com\/watch\?.*&v=([^&\n?#]+)/
+    ];
+    
+    for (const pattern of patterns) {
+      const match = url.match(pattern);
+      if (match) return match[1];
+    }
+    
+    // If no pattern matches, try to extract the last part as video ID
+    return url.split('/').pop().split('?')[0];
+  };
+
   const getCourseData = () => {
     enrolledCourses.map((course) => {
       if (course._id == courseId) {
         setCourseData(course);
-        course.courseRatings.map(()=>{
-          if(item.userId ===userData._id){
+        course.courseRatings.map((item) => {
+          if(item.userId === userData._id){
             setInitialRating(item.rating)
           }
         })
@@ -179,8 +199,9 @@ useEffect(()=>{
           {playerData ? (
             <div>
               <YouTube
-                videoId={playerData.lectureUrl.split('/').pop()}
+                videoId={extractVideoId(playerData.lectureUrl)}
                 iframeClassName="w-full aspect-video"
+                onError={(error) => console.error('YouTube player error:', error)}
               />
               <div className="flex justify-between items-center mt-1">
                 <p>
@@ -192,7 +213,13 @@ useEffect(()=>{
               </div>
             </div>
           ) : (
-            <img src={courseData ? courseData.courseThumbnail : ''} alt="" />
+            <img 
+              src={courseData ? courseData.courseThumbnail : ''} 
+              alt="Course thumbnail"
+              onError={(e) => {
+                e.target.src = assets.course_1;
+              }}
+            />
           )}
         </div>
       </div>

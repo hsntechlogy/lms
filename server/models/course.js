@@ -2,7 +2,19 @@ import mongoose from "mongoose"
 
 const lectureSchema = new mongoose.Schema({
    lectureId:{type:String,required:true}, 
-   lectureDuration:{type:  Number,required:true},
+   lectureDuration:{
+     type: Number,
+     required:true,
+     set: function(value) {
+       // If value is a string, try to parse it
+       if (typeof value === 'string') {
+         // Remove any non-numeric characters except decimal points
+         const numericValue = value.replace(/[^0-9.]/g, '');
+         return parseFloat(numericValue) || 0;
+       }
+       return value;
+     }
+   },
    lectureTitle:{type:String,required:true},
    lectureUrl:{type:  String,required:true},
    isPreviewFree:{type:Boolean,required:true}, 
@@ -27,6 +39,16 @@ const courseSchema = new mongoose.Schema({
     courseContent:[chapterSchema],
     courseRatings:[
         {userId:{type:String},rating:{type:Number,min:1,max:5}}
+    ],
+    testimonials:[
+        {
+            userId:{type:String,required:true},
+            userName:{type:String,required:true},
+            userImage:{type:String},
+            rating:{type:Number,required:true,min:4,max:5},
+            comment:{type:String,required:true,minlength:10,maxlength:500},
+            createdAt:{type:Date,default:Date.now}
+        }
     ],
     educator:{type:String,ref:'User',required:true},
     enrolledStudents:[

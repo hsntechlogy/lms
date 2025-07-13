@@ -15,7 +15,7 @@ const MyEnrollments = () => {
     fetchUserEnrolledCourses,
     backendUrl,
     getToken,
-    CalculateNoOflectures,
+    calculateNoOfLectures,
   } = useContext(AppContext);
 
   const [progressArray, setProgressArray] = useState([]);
@@ -30,7 +30,7 @@ const MyEnrollments = () => {
             { courseId: course._id },
             { headers: { Authorization: `Bearer ${token}` } }
           );
-          const totalLectures = CalculateNoOflectures(course);
+          const totalLectures = calculateNoOfLectures(course);
           const lectureCompleted = data.progressData
             ? data.progressData.lectureCompleted.length
             : 0;

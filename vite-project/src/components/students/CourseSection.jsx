@@ -18,7 +18,7 @@ const CourseSection = () =>{
 </div>
  <div className="text-center mt-12">
   <Link
-    to="/"
+    to="/course-list"
     onClick={() => window.scrollTo(0, 0)}
     className="inline-block border border-gray-500/30 text-gray-700 px-10 py-3 rounded hover:bg-gray-100 transition"
   >

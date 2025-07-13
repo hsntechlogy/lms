@@ -13,16 +13,18 @@ import AddCourse from './pages/educator/AddCourse';
 import MyCourses from './pages/educator/MyCourses';
 import StudentsEnrolled from './pages/educator/StudentsEnrolled';
 import Dashboard from './pages/educator/Dashboard';
+import AdminDashboard from './pages/admin/AdminDashboard';
 
 import Navbar from './components/students/Navbar';
 import "quill/dist/quill.snow.css";
 const App = () => {
   const isEducatorRoute = useMatch('/educator/*');
+  const isAdminRoute = useMatch('/admin/*');
 
   return (
     <div className="text-default min-h-screen bg-white">
       <ToastContainer/>
-      {!isEducatorRoute && <Navbar />}
+      {!isEducatorRoute && !isAdminRoute && <Navbar />}
 
       <Routes>
         {/* Student Routes */}
@@ -41,6 +43,9 @@ const App = () => {
           <Route path="my-courses" element={<MyCourses />} />
           <Route path="student-enrolled" element={<StudentsEnrolled />} />
         </Route>
+
+        {/* Admin Routes */}
+        <Route path="/admin" element={<AdminDashboard />} />
       </Routes>
     </div>
   );
