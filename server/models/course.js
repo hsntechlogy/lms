@@ -40,6 +40,16 @@ const courseSchema = new mongoose.Schema({
     courseRatings:[
         {userId:{type:String},rating:{type:Number,min:1,max:5}}
     ],
+    testimonials:[
+        {
+            userId:{type:String,required:true},
+            userName:{type:String,required:true},
+            userImage:{type:String},
+            rating:{type:Number,required:true,min:4,max:5},
+            comment:{type:String,required:true,minlength:10,maxlength:500},
+            createdAt:{type:Date,default:Date.now}
+        }
+    ],
     educator:{type:String,ref:'User',required:true},
     enrolledStudents:[
         {type:String,ref:'User'}
