@@ -107,20 +107,39 @@ const Player = () => {
   }
 
   const handleRate = async (rating) => {
+    console.log('handleRate called with rating:', rating);
     try {
-      const token = await getToken()
-      const {data } = await axios.post(backendUrl+'/api/user/add-rating',{courseId,rating},{headers:{Authorization:`Bearer ${token}`}})
+      const token = await getToken();
+      const { data } = await axios.post(
+        backendUrl + '/api/user/add-rating',
+        { courseId, rating },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
 
-       if (data.success){
-          toast.success(data.message)
-          fetchUserEnrolledCourses()
-        }else{
-          toast.error(data.message)
+      if (data.success) {
+        console.log('Rating successful:', data.message);
+        toast.success(data.message);
+        fetchUserEnrolledCourses();
+        // Update the local course data to reflect the new rating
+        if (courseData) {
+          const updatedCourse = { ...courseData };
+          const existingRatingIndex = updatedCourse.courseRatings.findIndex(r => r.userId === userData._id);
+          if (existingRatingIndex > -1) {
+            updatedCourse.courseRatings[existingRatingIndex].rating = rating;
+          } else {
+            updatedCourse.courseRatings.push({ userId: userData._id, rating });
+          }
+          setCourseData(updatedCourse);
         }
+      } else {
+        console.log('Rating failed:', data.message);
+        toast.error(data.message);
+      }
     } catch (error) {
-      toast.error(error.message)
+      console.log('Rating error:', error.message);
+      toast.error(error.message);
     }
-  }
+  };
 
   const fetchTestimonials = async () => {
     try {
