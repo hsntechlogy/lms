@@ -22,16 +22,22 @@ await connectCloudinary()
 
 // === CORS Configuration ===
 const allowedOrigins = [
-  process.env.FRONTEND_URL,
-  process.env.FRONTEND_URL_2,// optional, for localhost dev
+  'https://lms-frontend-git-main-hsntechlogys-projects.vercel.app',
+  'https://lms-frontend-eight-chi.vercel.app',
+  
 ]
 
 app.use(cors({
-  origin: allowedOrigins,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  credentials: true
+  origin: function (origin, callback) {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true)
+    } else {
+      callback(new Error("Not allowed by CORS"))
+    }
+  },
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS']
 }))
-
 // === Middleware ===
 app.use(express.json())
 app.use(clerkMiddleware())
