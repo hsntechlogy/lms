@@ -24,7 +24,7 @@ const CourseDetails = () => {
   const [progressData, setProgressData] = useState(null);
 
   const {
-    allCourses,
+    
     CalculateRating,
     calculateNoOfLectures,
     calculateCourseDuration,
@@ -38,7 +38,7 @@ const CourseDetails = () => {
 
   // Function to check if text contains only English characters
   const isEnglishOnly = (text) => {
-    const englishRegex = /^[a-zA-Z0-9\s.,!?@#$%^&*()_+\-=\[\]{};':"\\|<>\/\n\r]*$/;
+    const englishRegex = /^[a-zA-Z0-9\s.,!?@#$%^&*()_+\-=[\]{};':"\\|<>/\n\r]*$/;
     return englishRegex.test(text);
   };
 

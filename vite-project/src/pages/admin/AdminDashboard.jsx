@@ -22,7 +22,7 @@ const AdminDashboard = () => {
       } else {
         toast.error(data.message);
       }
-    } catch (error) {
+    } catch {
       toast.error('Failed to fetch users');
     } finally {
       setLoading(false);
@@ -44,7 +44,7 @@ const AdminDashboard = () => {
       } else {
         toast.error(data.message);
       }
-    } catch (error) {
+    } catch {
       toast.error('Failed to promote user');
     }
   };

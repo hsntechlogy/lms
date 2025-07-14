@@ -9,56 +9,59 @@ const TestimonialsSection = () => {
   const { backendUrl } = useContext(AppContext);
 
   const fetchAllTestimonials = async () => {
-    try {
-      setLoading(true);
-      const { data } = await axios.get(`${backendUrl}/api/course/all`);
-      
-      if (data.success) {
-        // Collect all testimonials from all courses
-        const allTestimonials = data.course.reduce((acc, course) => {
-          if (course.testimonials && course.testimonials.length > 0) {
-            return [...acc, ...course.testimonials];
-          }
-          return acc;
-        }, []);
-        
-        // Sort by date (newest first) and take the first 6
-        const sortedTestimonials = allTestimonials
-          .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
-          .slice(0, 6);
-        
-        setTestimonials(sortedTestimonials);
-      }
-    } catch (error) {
-      console.error('Error fetching testimonials:', error);
-      // Fallback to dummy testimonials if API fails
-      setTestimonials([
-        {
-          name: 'Donald Jackman',
-          role: 'SWE 1 @ Amazon',
-          image: assets.profile_img_1,
-          rating: 5,
-          feedback: 'I\'ve been using this platform for nearly two years, and it has been incredibly user-friendly, making my learning journey much easier.',
-        },
-        {
-          name: 'Richard Nelson',
-          role: 'SWE 2 @ Samsung',
-          image: assets.profile_img_2,
-          rating: 4,
-          feedback: 'The courses are well-structured and the instructors are knowledgeable. Highly recommended for anyone looking to improve their skills.',
-        },
-        {
-          name: 'James Washington',
-          role: 'SWE 2 @ Google',
-          image: assets.profile_img_3,
-          rating: 5,
-          feedback: 'Excellent learning platform with practical, real-world projects. The community support is amazing.',
-        },
-      ]);
-    } finally {
-      setLoading(false);
+  try {
+    setLoading(true);
+    const { data } = await axios.get(`${backendUrl}/api/course/all`);
+
+    if (data.success && Array.isArray(data.course)) {
+      const allTestimonials = data.course.reduce((acc, course) => {
+        return Array.isArray(course.testimonials) && course.testimonials.length > 0
+          ? [...acc, ...course.testimonials]
+          : acc;
+      }, []);
+
+      const sortedTestimonials = allTestimonials
+        .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+        .slice(0, 6);
+
+      setTestimonials(sortedTestimonials);
+    } else {
+      throw new Error('Invalid data structure');
     }
-  };
+  } catch (error) {
+    console.error('Error fetching testimonials:', error);
+    // Fallback dummy entries
+    setTestimonials([
+      {
+        name: 'Donald Jackman',
+        role: 'SWE 1 @ Amazon',
+        image: assets.profile_img_1,
+        rating: 5,
+        feedback:
+          "I've been using this platform for nearly two years, and it has been incredibly user‑friendly...",
+      },
+      {
+        name: 'Richard Nelson',
+        role: 'SWE 2 @ Samsung',
+        image: assets.profile_img_2,
+        rating: 4,
+        feedback:
+          'The courses are well‑structured and the instructors are knowledgeable...'
+      },
+      {
+        name: 'James Washington',
+        role: 'SWE 2 @ Google',
+        image: assets.profile_img_3,
+        rating: 5,
+        feedback:
+          'Excellent learning platform with practical, real‑world projects...'
+      }
+    ]);
+  } finally {
+    setLoading(false);
+  }
+};
+
 
   useEffect(() => {
     fetchAllTestimonials();

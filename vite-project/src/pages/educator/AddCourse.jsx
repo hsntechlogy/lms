@@ -5,7 +5,6 @@ import { assets } from '../../assets/assets';
 import { AppContext } from '../../context/AppContext';
 import { toast } from 'react-toastify';
 import axios from 'axios';
-import { data } from 'react-router-dom';
 
 const AddCourse = () => {
   const quillRef = useRef(null);

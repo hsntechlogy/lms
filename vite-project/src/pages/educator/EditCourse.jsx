@@ -3,7 +3,6 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import axios from 'axios';
 import { AppContext } from '../../context/AppContext';
-import { assets } from '../../assets/assets';
 import Loading from '../../components/students/Loading';
 import Navbar from '../../components/educator/Navbar';
 import Sidebar from '../../components/educator/Sidebar';
@@ -15,7 +14,7 @@ const EditCourse = () => {
   const { backendUrl, getToken } = useContext(AppContext);
   
   const [loading, setLoading] = useState(true);
-  const [courseData, setCourseData] = useState(null);
+  const [ setCourseData] = useState(null);
   const [imageFile, setImageFile] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
   const [formData, setFormData] = useState({
