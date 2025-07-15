@@ -21,10 +21,18 @@ const MyEnrollments = () => {
   const [progressArray, setProgressArray] = useState([]);
 
   const getCourseProgress = async () => {
+    const token = await getToken();
+    if (!token) {
+      toast.error('User token is missing. Please log in again.');
+      return;
+    }
     try {
-      const token = await getToken();
       const tempProgressArray = await Promise.all(
         enrolledCourses.map(async (course) => {
+          if (!course._id) {
+            toast.error('Course ID is missing for one of your enrollments.');
+            return { totalLectures: 0, lectureCompleted: 0 };
+          }
           const { data } = await axios.post(
             backendUrl.endsWith('/') ? `${backendUrl}api/user/get-course-progress` : `${backendUrl}/api/user/get-course-progress`,
             { courseId: course._id },

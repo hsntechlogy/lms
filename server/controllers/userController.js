@@ -16,7 +16,7 @@ const negativeWords = [
 
 // Function to check for negative words
 const containsNegativeWords = (text) => {
-    const lowerText = text.toLowerCase();
+    const lowerText = (text || '').toLowerCase();
     return negativeWords.some(word => lowerText.includes(word));
 };
 
@@ -89,7 +89,7 @@ export const purchaseCourse = async (req, res) => {
 
         // Stripe Gateway Initialize
         const stripeInstance = new Stripe(process.env.STRIPE_SECRET_KEY);
-        const currency = process.env.VITE_CURRENCY.toLowerCase();
+        const currency = (process.env.VITE_CURRENCY || 'usd').toLowerCase();
 
         // Creating line items for stripe
         const line_items = [{

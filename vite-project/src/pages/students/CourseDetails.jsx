@@ -43,8 +43,16 @@ const CourseDetails = () => {
 
   // Function to get course progress
   const getCourseProgress = async () => {
+    if (!id) {
+      toast.error('Course ID is missing');
+      return;
+    }
+    const token = await getToken();
+    if (!token) {
+      toast.error('User token is missing. Please log in again.');
+      return;
+    }
     try {
-      const token = await getToken();
       const { data } = await axios.post(
         backendUrl.replace(/\/$/, '') + '/api/user/get-course-progress',
         { courseId: id },
@@ -54,9 +62,11 @@ const CourseDetails = () => {
         setProgressData(data.progressData);
       } else {
         console.log('Progress fetch failed:', data.message);
+        toast.error(data.message);
       }
     } catch (error) {
       console.log('Progress fetch error:', error.message);
+      toast.error(error.message);
     }
   };
 
@@ -333,16 +343,20 @@ const CourseDetails = () => {
                             <div className="flex gap-2">
                               {lecture.lectureUrl && (
                                 <p
-                                  onClick={() =>
-                                    setPlayerData({
-                                      ...lecture,
-                                      chapter: index + 1,
-                                      lecture: i + 1,
-                                    })
-                                  }
-                                  className="text-blue-500 cursor-pointer hover:text-blue-700"
+                                  onClick={() => {
+                                    if (isAlreadyEnrolled || lecture.isPreviewFree) {
+                                      setPlayerData({
+                                        ...lecture,
+                                        chapter: index + 1,
+                                        lecture: i + 1,
+                                      });
+                                    } else {
+                                      toast.error('Enroll in the course to watch this lecture.');
+                                    }
+                                  }}
+                                  className={`text-blue-500 cursor-pointer hover:text-blue-700 ${!isAlreadyEnrolled && !lecture.isPreviewFree ? 'opacity-50 pointer-events-none' : ''}`}
                                 >
-                                  watch
+                                  {lecture.isPreviewFree ? 'Preview' : 'Watch'}
                                 </p>
                               )}
                               {isAlreadyEnrolled && (
@@ -380,106 +394,86 @@ const CourseDetails = () => {
               ))}
           </div>
 
-          {/* Rating Section - Only show if enrolled */}
-          {isAlreadyEnrolled && (
-            <div className="flex items-center gap-2 py-3 mt-10">
-              <h1 className="text-xl font-bold">Rate this course</h1>
+          {/* Rating Section - Always visible, prompt login/enrollment if needed */}
+          <div className="flex items-center gap-2 py-3 mt-10">
+            <h1 className="text-xl font-bold">Rate this course</h1>
+            {userData && isAlreadyEnrolled ? (
               <Rating initialRating={initialRating} onRate={handleRate} />
-            </div>
-          )}
+            ) : (
+              <span className="text-gray-500 ml-2">Login and enroll to rate this course</span>
+            )}
+          </div>
 
-          {/* Interactive Testimonials Section - Only show if enrolled */}
-          {isAlreadyEnrolled && (
-            <div className="mt-10">
-              <h2 className="text-xl font-bold mb-4">Testimonials</h2>
-              
-              {canAddTestimonial() && (
-                <div className="mb-6">
-                  <button
-                    onClick={() => setShowTestimonialForm(!showTestimonialForm)}
-                    className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition-colors"
-                  >
-                    {showTestimonialForm ? 'Cancel' : 'Add Testimonial'}
-                  </button>
-                  
-                  {showTestimonialForm && (
-                    <div className="mt-4 p-4 border border-gray-300 rounded bg-gray-50">
-                      <textarea
-                        value={testimonialComment}
-                        onChange={(e) => setTestimonialComment(e.target.value)}
-                        placeholder="Share your experience with this course in English only (10-500 characters)..."
-                        className="w-full p-3 border border-gray-300 rounded resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        rows="4"
-                        maxLength="500"
+          {/* Testimonials Section - Always visible, show placeholder if none */}
+          <div className="mt-10">
+            <h2 className="text-xl font-bold mb-4">Testimonials</h2>
+            {userData && isAlreadyEnrolled && canAddTestimonial() && (
+              <div className="mb-6">
+                <button
+                  onClick={() => setShowTestimonialForm(!showTestimonialForm)}
+                  className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition-colors"
+                >
+                  {showTestimonialForm ? 'Cancel' : 'Add Testimonial'}
+                </button>
+                {showTestimonialForm && (
+                  <div className="mt-4">
+                    <textarea
+                      className="w-full border rounded p-2 mb-2"
+                      rows={3}
+                      placeholder="Share your experience..."
+                      value={testimonialComment}
+                      onChange={e => setTestimonialComment(e.target.value)}
+                    />
+                    <button
+                      onClick={handleAddTestimonial}
+                      className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
+                      disabled={!testimonialComment.trim()}
+                    >
+                      Submit Testimonial
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
+            {/* Display Testimonials or Placeholder */}
+            {testimonials && testimonials.length > 0 ? (
+              <div className="space-y-4">
+                {testimonials.map((testimonial, index) => (
+                  <div key={index} className="border border-gray-300 rounded p-4 bg-gray-50">
+                    <div className="flex items-center gap-3 mb-3">
+                      <img
+                        src={testimonial.userImage || assets.profile_img_1}
+                        alt={testimonial.userName}
+                        className="w-10 h-10 rounded-full"
+                        onError={e => { e.target.src = assets.profile_img_1; }}
                       />
-                      <div className="flex justify-between items-center mt-2">
-                        <span className="text-sm text-gray-500">
-                          {testimonialComment.length}/500 characters
-                          {!isEnglishOnly(testimonialComment) && testimonialComment.length > 0 && (
-                            <span className="text-red-500 ml-2">English only</span>
-                          )}
-                        </span>
-                        <button
-                          onClick={handleAddTestimonial}
-                          disabled={!isEnglishOnly(testimonialComment) || testimonialComment.length < 10}
-                          className={`px-4 py-2 rounded transition-colors ${
-                            isEnglishOnly(testimonialComment) && testimonialComment.length >= 10
-                              ? 'bg-green-600 text-white hover:bg-green-700'
-                              : 'bg-gray-400 text-gray-600 cursor-not-allowed'
-                          }`}
-                        >
-                          Submit Testimonial
-                        </button>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              )}
-
-              {/* Display Testimonials */}
-              {testimonials && testimonials.length > 0 ? (
-                <div className="space-y-4">
-                  {testimonials.map((testimonial, index) => (
-                    <div key={index} className="border border-gray-300 rounded p-4 bg-gray-50">
-                      <div className="flex items-center gap-3 mb-3">
-                        <img
-                          src={testimonial.userImage || assets.profile_img_1}
-                          alt={testimonial.userName}
-                          className="w-10 h-10 rounded-full"
-                          onError={(e) => {
-                            e.target.src = assets.profile_img_1;
-                          }}
-                        />
-                        <div>
-                          <h4 className="font-semibold">{testimonial.userName}</h4>
-                          <div className="flex items-center gap-1">
-                            {[...Array(5)].map((_, i) => (
-                              <span
-                                key={i}
-                                className={`text-sm ${
-                                  i < testimonial.rating ? 'text-yellow-500' : 'text-gray-300'
-                                }`}
-                              >
-                                ★
-                              </span>
-                            ))}
-                          </div>
+                      <div>
+                        <h4 className="font-semibold">{testimonial.userName}</h4>
+                        <div className="flex items-center gap-1">
+                          {[...Array(5)].map((_, i) => (
+                            <span
+                              key={i}
+                              className={`text-sm ${i < testimonial.rating ? 'text-yellow-500' : 'text-gray-300'}`}
+                            >
+                              ★
+                            </span>
+                          ))}
                         </div>
                       </div>
-                      <p className="text-gray-700">{testimonial.comment}</p>
-                      <p className="text-xs text-gray-500 mt-2">
-                        {new Date(testimonial.createdAt).toLocaleDateString()}
-                      </p>
                     </div>
-                  ))}
-                </div>
-              ) : (
-                <p className="text-gray-500 text-center py-8">
-                  No testimonials yet. Be the first to share your experience after rating this course 4 or 5 stars!
-                </p>
-              )}
-            </div>
-          )}
+                    <p className="text-gray-700">{testimonial.comment}</p>
+                    <p className="text-xs text-gray-500 mt-2">
+                      {testimonial.createdAt ? new Date(testimonial.createdAt).toLocaleDateString() : ''}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-gray-500 text-center py-8">
+                No testimonials yet. Be the first to share your experience after rating this course 4 or 5 stars!
+              </p>
+            )}
+          </div>
 
           {/* Full description */}
           <div className="py-20 text-sm md:text-default">
@@ -500,7 +494,7 @@ const CourseDetails = () => {
               iframeClassName="w-full aspect-video"
             />
           ) : (
-            <img src={courseData.courseThumbnail} alt="" />
+            <img src={courseData.courseThumbnail || assets.course_1} alt="Course thumbnail" onError={e => { e.target.src = assets.course_1; }} />
           )}
 
           <div className="p-4">
@@ -519,6 +513,9 @@ const CourseDetails = () => {
                 ))}
               </div>
               <span className="text-gray-500">({courseData.courseRatings?.length || 0} ratings)</span>
+              {(!courseData.courseRatings || courseData.courseRatings.length === 0) && (
+                <span className="text-gray-400 ml-2">No ratings yet</span>
+              )}
             </div>
 
             <div className="flex items-center gap-4 text-sm text-gray-500 mb-4">

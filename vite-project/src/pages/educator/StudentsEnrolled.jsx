@@ -15,7 +15,7 @@ const StudentsEnrolled = () => {
       const url = backendUrl.endsWith('/') ? backendUrl + 'api/educator/enrolled-students' : backendUrl + '/api/educator/enrolled-students';
       const {data} = await axios.get(url,{headers:{Authorization:`Bearer ${token}`}})
     if (data.success) {
-      setEnrolledStudents(data.enrolledStudents.reverse())
+      setEnrolledStudents((data.enrolledStudents || []).reverse())
     }else{
       toast.error(data.message)
     }

@@ -45,18 +45,24 @@ export const addCourse = async (req, res) => {
         let educatorUser = await User.findById(educatorId);
         if (!educatorUser) {
             // Get educator info from Clerk
-            const clerkUser = await clerkClient.users.getUser(educatorId);
-            if (!clerkUser) {
-                return res.json({ success: false, message: 'Educator not found' })
+            let clerkUser = null;
+            try {
+                clerkUser = await clerkClient.users.getUser(educatorId);
+            } catch (clerkErr) {
+                console.error('Clerk user fetch failed:', clerkErr);
+                return res.status(500).json({ success: false, message: 'Failed to fetch educator from Clerk.' });
             }
-            // Add check and logging for required fields
-            if (!educatorId || !clerkUser.imageUrl) {
-                console.error('Missing educatorId or imageUrl', { educatorId, imageUrl: clerkUser.imageUrl });
-                return res.status(400).json({ success: false, message: 'Educator ID and imageUrl are required.' });
+            if (!clerkUser || !clerkUser.id) {
+                console.error('Educator not found or missing id from Clerk', { educatorId, clerkUser });
+                return res.status(400).json({ success: false, message: 'Educator not found or missing id.' });
+            }
+            if (!clerkUser.imageUrl) {
+                console.error('Educator missing imageUrl from Clerk', { educatorId, clerkUser });
+                return res.status(400).json({ success: false, message: 'Educator imageUrl is required.' });
             }
             // Create User document if it doesn't exist
             educatorUser = await User.create({
-                _id: educatorId,
+                _id: clerkUser.id,
                 name: `${clerkUser.firstName || ''} ${clerkUser.lastName || ''}`.trim() || 'Unknown',
                 email: clerkUser.emailAddresses[0]?.emailAddress || 'No email',
                 imageUrl: clerkUser.imageUrl

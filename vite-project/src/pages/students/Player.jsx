@@ -97,8 +97,16 @@ const Player = () => {
   };
 
   const getCourseProgress = async () => {
+    if (!courseId) {
+      toast.error('Course ID is missing');
+      return;
+    }
+    const token = await getToken();
+    if (!token) {
+      toast.error('User token is missing. Please log in again.');
+      return;
+    }
     try {
-      const token = await getToken();
       const url = backendUrl.replace(/\/$/, '') + '/api/user/get-course-progress';
       const { data } = await axios.post(
         url,
@@ -225,6 +233,9 @@ const Player = () => {
     fetchTestimonials();
   }, []);
 
+  // Only allow video playback if enrolled or isPreviewFree
+  const canWatchLecture = playerData && (enrolledCourses.some(c => c._id === courseId) || playerData.isPreviewFree);
+
   return courseData ? (
     <>
       <div className="p-4 sm:p-10 flex flex-col-reverse md:grid-cols-2 gap-10 md:px-36">
@@ -300,17 +311,20 @@ const Player = () => {
               ))}
           </div>
 
-          {/* Rating Section */}
+          {/* Rating Section - Always visible, prompt login/enrollment if needed */}
           <div className="flex items-center gap-2 py-3 mt-10">
             <h1 className="text-xl font-bold">Rate this course</h1>
-            <Rating initialRating={initialRating} onRate={handleRate} />
+            {userData && courseData ? (
+              <Rating initialRating={initialRating} onRate={handleRate} />
+            ) : (
+              <span className="text-gray-500 ml-2">Login and enroll to rate this course</span>
+            )}
           </div>
 
-          {/* Testimonials Section */}
+          {/* Testimonials Section - Always visible, show placeholder if none */}
           <div className="mt-10">
             <h2 className="text-xl font-bold mb-4">Testimonials</h2>
-            
-            {canAddTestimonial() && (
+            {userData && courseData && canAddTestimonial() && (
               <div className="mb-6">
                 <button
                   onClick={() => setShowTestimonialForm(!showTestimonialForm)}
@@ -318,42 +332,27 @@ const Player = () => {
                 >
                   {showTestimonialForm ? 'Cancel' : 'Add Testimonial'}
                 </button>
-                
                 {showTestimonialForm && (
-                  <div className="mt-4 p-4 border border-gray-300 rounded bg-gray-50">
+                  <div className="mt-4">
                     <textarea
+                      className="w-full border rounded p-2 mb-2"
+                      rows={3}
+                      placeholder="Share your experience..."
                       value={testimonialComment}
-                      onChange={(e) => setTestimonialComment(e.target.value)}
-                      placeholder="Share your experience with this course in English only (10-500 characters)..."
-                      className="w-full p-3 border border-gray-300 rounded resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      rows="4"
-                      maxLength="500"
+                      onChange={e => setTestimonialComment(e.target.value)}
                     />
-                    <div className="flex justify-between items-center mt-2">
-                      <span className="text-sm text-gray-500">
-                        {testimonialComment.length}/500 characters
-                        {!isEnglishOnly(testimonialComment) && testimonialComment.length > 0 && (
-                          <span className="text-red-500 ml-2">English only</span>
-                        )}
-                      </span>
-                      <button
-                        onClick={handleAddTestimonial}
-                        disabled={!isEnglishOnly(testimonialComment) || testimonialComment.length < 10}
-                        className={`px-4 py-2 rounded transition-colors ${
-                          isEnglishOnly(testimonialComment) && testimonialComment.length >= 10
-                            ? 'bg-green-600 text-white hover:bg-green-700'
-                            : 'bg-gray-400 text-gray-600 cursor-not-allowed'
-                        }`}
-                      >
-                        Submit Testimonial
-                      </button>
-                    </div>
+                    <button
+                      onClick={handleAddTestimonial}
+                      className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
+                      disabled={!testimonialComment.trim()}
+                    >
+                      Submit Testimonial
+                    </button>
                   </div>
                 )}
               </div>
             )}
-
-            {/* Display Testimonials */}
+            {/* Display Testimonials or Placeholder */}
             {testimonials && testimonials.length > 0 ? (
               <div className="space-y-4">
                 {testimonials.map((testimonial, index) => (
@@ -363,9 +362,7 @@ const Player = () => {
                         src={testimonial.userImage || assets.profile_img_1}
                         alt={testimonial.userName}
                         className="w-10 h-10 rounded-full"
-                        onError={(e) => {
-                          e.target.src = assets.profile_img_1;
-                        }}
+                        onError={e => { e.target.src = assets.profile_img_1; }}
                       />
                       <div>
                         <h4 className="font-semibold">{testimonial.userName}</h4>
@@ -373,9 +370,7 @@ const Player = () => {
                           {[...Array(5)].map((_, i) => (
                             <span
                               key={i}
-                              className={`text-sm ${
-                                i < testimonial.rating ? 'text-yellow-500' : 'text-gray-300'
-                              }`}
+                              className={`text-sm ${i < testimonial.rating ? 'text-yellow-500' : 'text-gray-300'}`}
                             >
                               ★
                             </span>
@@ -385,7 +380,7 @@ const Player = () => {
                     </div>
                     <p className="text-gray-700">{testimonial.comment}</p>
                     <p className="text-xs text-gray-500 mt-2">
-                      {new Date(testimonial.createdAt).toLocaleDateString()}
+                      {testimonial.createdAt ? new Date(testimonial.createdAt).toLocaleDateString() : ''}
                     </p>
                   </div>
                 ))}
@@ -401,49 +396,53 @@ const Player = () => {
         {/* Right Column */}
         <div className="md:mt-10">
           {playerData ? (
-            <div>
-              <div className="relative">
-                <YouTube
-                  videoId={extractVideoId(playerData.lectureUrl)}
-                  iframeClassName="w-full aspect-video rounded"
-                  onError={(error) => {
-                    console.error('YouTube player error:', error);
-                    toast.error('Error loading video. Please check the URL.');
-                  }}
-                  opts={{
-                    playerVars: {
-                      autoplay: 1,
-                      modestbranding: 1,
-                      rel: 0
-                    }
-                  }}
-                />
+            canWatchLecture ? (
+              <div>
+                <div className="relative">
+                  <YouTube
+                    videoId={extractVideoId(playerData.lectureUrl)}
+                    iframeClassName="w-full aspect-video rounded"
+                    onError={(error) => {
+                      console.error('YouTube player error:', error);
+                      toast.error('Error loading video. Please check the URL.');
+                    }}
+                    opts={{
+                      playerVars: {
+                        autoplay: 1,
+                        modestbranding: 1,
+                        rel: 0
+                      }
+                    }}
+                  />
+                </div>
+                <div className="flex justify-between items-center mt-4 p-3 bg-gray-50 rounded">
+                  <p className="font-medium">
+                    {playerData.chapter}.{playerData.lecture} {playerData.lectureTitle}
+                  </p>
+                  <button 
+                    onClick={() => markLectureAsCompleted(playerData.lectureId)} 
+                    className={`px-4 py-2 rounded font-medium transition-colors ${
+                      progressData && progressData.lectureCompleted.includes(playerData.lectureId)
+                        ? 'bg-green-600 text-white hover:bg-green-700'
+                        : 'bg-blue-600 text-white hover:bg-blue-700'
+                    }`}
+                  >
+                    {progressData && progressData.lectureCompleted.includes(playerData.lectureId) ? '✓ Completed' : 'Mark as completed'}
+                  </button>
+                </div>
               </div>
-              <div className="flex justify-between items-center mt-4 p-3 bg-gray-50 rounded">
-                <p className="font-medium">
-                  {playerData.chapter}.{playerData.lecture} {playerData.lectureTitle}
-                </p>
-                <button 
-                  onClick={() => markLectureAsCompleted(playerData.lectureId)} 
-                  className={`px-4 py-2 rounded font-medium transition-colors ${
-                    progressData && progressData.lectureCompleted.includes(playerData.lectureId)
-                      ? 'bg-green-600 text-white hover:bg-green-700'
-                      : 'bg-blue-600 text-white hover:bg-blue-700'
-                  }`}
-                >
-                  {progressData && progressData.lectureCompleted.includes(playerData.lectureId) ? '✓ Completed' : 'Mark as completed'}
-                </button>
-              </div>
-            </div>
+            ) : (
+              <div className="text-center text-red-500 font-semibold py-10">You must enroll in this course to watch this lecture.</div>
+            )
           ) : (
             <div className="text-center">
               <img 
-                src={courseData ? courseData.courseThumbnail : ''} 
+                src={courseData && courseData.courseThumbnail ? courseData.courseThumbnail : assets.course_1} 
                 alt="Course thumbnail"
                 className="w-full rounded"
                 onError={(e) => {
                   e.target.src = assets.course_1;
-                }}
+              }}
               />
               <p className="mt-4 text-gray-600">Select a lecture to start watching</p>
             </div>

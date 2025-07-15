@@ -39,7 +39,7 @@ fetchDashboardData();
             <img src={assets.patients_icon} alt="enrolled icon" />
             <div>
               <p className="text-2xl font-medium text-gray-600">
-                {dashboardData.enrolledStudentsData.length}
+                {dashboardData.enrolledStudentsData ? dashboardData.enrolledStudentsData.length : 0}
               </p>
               <p className="text-base text-gray-500">total enrollment</p>
             </div>
@@ -58,7 +58,7 @@ fetchDashboardData();
             <div>
               <p className="text-2xl font-medium text-gray-600">
                 {currency}
-                {dashboardData.totalEarnings}
+                {dashboardData.totalEarnings || dashboardData.totalRevenue || 0}
               </p>
               <p className="text-base text-gray-500">total earnings</p>
             </div>
@@ -77,7 +77,7 @@ fetchDashboardData();
                 </tr>
               </thead>
               <tbody className="text-sm text-gray-500">
-                {dashboardData.enrolledStudentsData.map((item, index) => (
+                {dashboardData.enrolledStudentsData ? dashboardData.enrolledStudentsData.map((item, index) => (
                   <tr key={index} className="border-b border-gray-500/20">
                     <td className="px-4 py-3 text-center hidden sm:table-cell">{index + 1}</td>
                     <td className="md:px-4 px-2 py-3 flex items-center space-x-3">
@@ -86,7 +86,7 @@ fetchDashboardData();
                     </td>
                     <td className="px-4 py-3 truncate">{item.courseTitle}</td>
                   </tr>
-                ))}
+                )) : <tr><td colSpan="3" className="text-center py-4">No enrollments found.</td></tr>}
               </tbody>
             </table>
           </div>
