@@ -25,7 +25,6 @@ const CourseDetails = () => {
   // Add state for pinned testimonials, view all toggle, and admin check
   const [pinnedTestimonials, setPinnedTestimonials] = useState([]);
   const [showAllTestimonials, setShowAllTestimonials] = useState(false);
-  const isAdmin = userData && userData.isAdmin;
 
   const {
     CalculateRating,
@@ -38,6 +37,8 @@ const CourseDetails = () => {
     getToken,
     enrolledCourses,
   } = useContext(AppContext);
+
+  const isAdmin = userData && userData.isAdmin;
 
   // Function to check if text contains only English characters
   const isEnglishOnly = (text) => {
