@@ -8,4 +8,7 @@ export default defineConfig({
     // 👇 Enables SPA fallback for react-router
     historyApiFallback: true,
   },
+  build: {
+    sourcemap: true, // Enable source maps for debugging
+  },
 });
