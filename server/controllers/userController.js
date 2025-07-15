@@ -318,21 +318,81 @@ export const addTestimonial = async (req, res) => {
     }
 };
 
-export const getCourseTestimonials = async (req, res) => {
+// Pin a testimonial (admin only)
+export const pinTestimonial = async (req, res) => {
     try {
-        const { courseId } = req.params;
-
-        // Validate courseId
-        if (!courseId || courseId === 'undefined') {
-            return res.json({ success: false, message: 'Invalid course ID' });
+        const { courseId, testimonialIndex } = req.body;
+        const userId = req.auth.userId;
+        // Check if user is admin (for now, assume isAdmin is set on user)
+        const user = await User.findById(userId);
+        if (!user || !user.isAdmin) {
+            return res.status(403).json({ success: false, message: 'Only admin can pin testimonials.' });
         }
-
         const course = await Course.findById(courseId);
         if (!course) {
             return res.json({ success: false, message: 'Course not found' });
         }
+        if (!course.testimonials[testimonialIndex]) {
+            return res.json({ success: false, message: 'Testimonial not found' });
+        }
+        // Prevent duplicates
+        const testimonial = course.testimonials[testimonialIndex];
+        const alreadyPinned = course.pinnedTestimonials.some(t => t.userId === testimonial.userId && t.comment === testimonial.comment);
+        if (alreadyPinned) {
+            return res.json({ success: false, message: 'Testimonial already pinned.' });
+        }
+        // Only allow up to 3 pinned
+        if (course.pinnedTestimonials.length >= 3) {
+            return res.json({ success: false, message: 'You can only pin up to 3 testimonials.' });
+        }
+        course.pinnedTestimonials.push(testimonial);
+        await course.save();
+        res.json({ success: true, message: 'Testimonial pinned.' });
+    } catch (error) {
+        res.json({ success: false, message: error.message });
+    }
+};
 
-        res.json({ success: true, testimonials: course.testimonials || [] });
+// Unpin a testimonial (admin only)
+export const unpinTestimonial = async (req, res) => {
+    try {
+        const { courseId, testimonialIndex } = req.body;
+        const userId = req.auth.userId;
+        const user = await User.findById(userId);
+        if (!user || !user.isAdmin) {
+            return res.status(403).json({ success: false, message: 'Only admin can unpin testimonials.' });
+        }
+        const course = await Course.findById(courseId);
+        if (!course) {
+            return res.json({ success: false, message: 'Course not found' });
+        }
+        if (!course.pinnedTestimonials[testimonialIndex]) {
+            return res.json({ success: false, message: 'Pinned testimonial not found' });
+        }
+        course.pinnedTestimonials.splice(testimonialIndex, 1);
+        await course.save();
+        res.json({ success: true, message: 'Testimonial unpinned.' });
+    } catch (error) {
+        res.json({ success: false, message: error.message });
+    }
+};
+
+// Update getCourseTestimonials to return pinned and regular testimonials separately
+export const getCourseTestimonials = async (req, res) => {
+    try {
+        const { courseId } = req.params;
+        if (!courseId || courseId === 'undefined') {
+            return res.json({ success: false, message: 'Invalid course ID' });
+        }
+        const course = await Course.findById(courseId);
+        if (!course) {
+            return res.json({ success: false, message: 'Course not found' });
+        }
+        res.json({
+            success: true,
+            pinnedTestimonials: course.pinnedTestimonials || [],
+            testimonials: course.testimonials || []
+        });
     } catch (error) {
         res.json({ success: false, message: error.message });
     }

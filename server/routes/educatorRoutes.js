@@ -1,7 +1,8 @@
 import express from 'express'
-import {addCourse, updateRoleToEducator, getEducatorCourses, educatorDashboardData, getEnrolledStudentsData, editCourse, getCourseForEdit} from '../controllers/educatorController.js'
+import {addCourse, updateRoleToEducator, getEducatorCourses, educatorDashboardData, getEnrolledStudentsData, editCourse, getCourseForEdit, pinTestimonial, unpinTestimonial} from '../controllers/educatorController.js'
 import upload from '../configs/multer.js'
 import { protectEducator, protectAdmin } from '../middlewares/authMiddleware.js'
+import { pinTestimonial as userPinTestimonial, unpinTestimonial as userUnpinTestimonial } from '../controllers/userController.js';
 const educatorRouter = express.Router()
 
 //add educator role (admin only)
@@ -22,5 +23,9 @@ educatorRouter.get('/dashboard',protectEducator,educatorDashboardData)
 
 //get enrolled students data
 educatorRouter.get('/enrolled-students',protectEducator,getEnrolledStudentsData)
+
+// Pin/unpin testimonial routes (admin only)
+educatorRouter.post('/pin-testimonial', protectAdmin, userPinTestimonial);
+educatorRouter.post('/unpin-testimonial', protectAdmin, userUnpinTestimonial);
 
 export default educatorRouter

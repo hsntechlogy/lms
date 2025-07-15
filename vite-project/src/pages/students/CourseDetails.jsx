@@ -22,6 +22,10 @@ const CourseDetails = () => {
   const [testimonials, setTestimonials] = useState([]);
   const [initialRating, setInitialRating] = useState(0);
   const [progressData, setProgressData] = useState(null);
+  // Add state for pinned testimonials, view all toggle, and admin check
+  const [pinnedTestimonials, setPinnedTestimonials] = useState([]);
+  const [showAllTestimonials, setShowAllTestimonials] = useState(false);
+  const isAdmin = userData && userData.isAdmin;
 
   const {
     CalculateRating,
@@ -138,15 +142,16 @@ const CourseDetails = () => {
     }
   };
 
+  // Update fetchTestimonials to get pinned and regular testimonials
   const fetchTestimonials = async () => {
     try {
       if (!id) return;
-      
       const { data } = await axios.get(
         backendUrl.replace(/\/$/, '') + '/api/user/testimonials/' + id
       );
       if (data.success) {
-        setTestimonials(data.testimonials);
+        setPinnedTestimonials(data.pinnedTestimonials || []);
+        setTestimonials(data.testimonials || []);
       }
     } catch (error) {
       console.error('Error fetching testimonials:', error);
@@ -407,38 +412,63 @@ const CourseDetails = () => {
           {/* Testimonials Section - Always visible, show placeholder if none */}
           <div className="mt-10">
             <h2 className="text-xl font-bold mb-4">Testimonials</h2>
-            {userData && isAlreadyEnrolled && canAddTestimonial() && (
+            {/* Pinned Testimonials */}
+            {pinnedTestimonials && pinnedTestimonials.length > 0 && (
               <div className="mb-6">
-                <button
-                  onClick={() => setShowTestimonialForm(!showTestimonialForm)}
-                  className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition-colors"
-                >
-                  {showTestimonialForm ? 'Cancel' : 'Add Testimonial'}
-                </button>
-                {showTestimonialForm && (
-                  <div className="mt-4">
-                    <textarea
-                      className="w-full border rounded p-2 mb-2"
-                      rows={3}
-                      placeholder="Share your experience..."
-                      value={testimonialComment}
-                      onChange={e => setTestimonialComment(e.target.value)}
-                    />
-                    <button
-                      onClick={handleAddTestimonial}
-                      className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
-                      disabled={!testimonialComment.trim()}
-                    >
-                      Submit Testimonial
-                    </button>
-                  </div>
-                )}
+                <h3 className="text-lg font-semibold text-blue-700 mb-2">Pinned by Admin</h3>
+                <div className="space-y-4">
+                  {pinnedTestimonials.map((testimonial, index) => (
+                    <div key={index} className="border-2 border-blue-400 rounded p-4 bg-blue-50">
+                      <div className="flex items-center gap-3 mb-3">
+                        <img
+                          src={testimonial.userImage || assets.profile_img_1}
+                          alt={testimonial.userName}
+                          className="w-10 h-10 rounded-full"
+                          onError={e => { e.target.src = assets.profile_img_1; }}
+                        />
+                        <div>
+                          <h4 className="font-semibold">{testimonial.userName}</h4>
+                          <div className="flex items-center gap-1">
+                            {[...Array(5)].map((_, i) => (
+                              <span
+                                key={i}
+                                className={`text-sm ${i < testimonial.rating ? 'text-yellow-500' : 'text-gray-300'}`}
+                              >
+                                ★
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                      <p className="text-gray-700">{testimonial.comment}</p>
+                      <p className="text-xs text-gray-500 mt-2">
+                        {testimonial.createdAt ? new Date(testimonial.createdAt).toLocaleDateString() : ''}
+                      </p>
+                      {isAdmin && (
+                        <button
+                          className="mt-2 text-xs text-red-600 border border-red-400 px-2 py-1 rounded hover:bg-red-50"
+                          onClick={async () => {
+                            const token = await getToken();
+                            await axios.post(
+                              backendUrl.replace(/\/$/, '') + '/api/educator/unpin-testimonial',
+                              { courseId: id, testimonialIndex: index },
+                              { headers: { Authorization: `Bearer ${token}` } }
+                            );
+                            fetchTestimonials();
+                          }}
+                        >
+                          Unpin
+                        </button>
+                      )}
+                    </div>
+                  ))}
+                </div>
               </div>
             )}
-            {/* Display Testimonials or Placeholder */}
+            {/* Regular Testimonials (show 3 by default) */}
             {testimonials && testimonials.length > 0 ? (
               <div className="space-y-4">
-                {testimonials.map((testimonial, index) => (
+                {(showAllTestimonials ? testimonials : testimonials.slice(0, 3)).map((testimonial, index) => (
                   <div key={index} className="border border-gray-300 rounded p-4 bg-gray-50">
                     <div className="flex items-center gap-3 mb-3">
                       <img
@@ -465,12 +495,45 @@ const CourseDetails = () => {
                     <p className="text-xs text-gray-500 mt-2">
                       {testimonial.createdAt ? new Date(testimonial.createdAt).toLocaleDateString() : ''}
                     </p>
+                    {isAdmin && (
+                      <button
+                        className="mt-2 text-xs text-blue-600 border border-blue-400 px-2 py-1 rounded hover:bg-blue-50"
+                        onClick={async () => {
+                          const token = await getToken();
+                          await axios.post(
+                            backendUrl.replace(/\/$/, '') + '/api/educator/pin-testimonial',
+                            { courseId: id, testimonialIndex: index },
+                            { headers: { Authorization: `Bearer ${token}` } }
+                          );
+                          fetchTestimonials();
+                        }}
+                      >
+                        Pin
+                      </button>
+                    )}
                   </div>
                 ))}
+                {/* View All Button for admin/educator */}
+                {testimonials.length > 3 && !showAllTestimonials && (
+                  <button
+                    className="mt-4 px-4 py-2 bg-gray-200 rounded hover:bg-gray-300 text-blue-700"
+                    onClick={() => setShowAllTestimonials(true)}
+                  >
+                    View All Comments
+                  </button>
+                )}
+                {showAllTestimonials && (
+                  <button
+                    className="mt-4 px-4 py-2 bg-gray-200 rounded hover:bg-gray-300 text-blue-700"
+                    onClick={() => setShowAllTestimonials(false)}
+                  >
+                    Show Less
+                  </button>
+                )}
               </div>
             ) : (
               <p className="text-gray-500 text-center py-8">
-                No testimonials yet. Be the first to share your experience after rating this course 4 or 5 stars!
+                No testimonials yet. Be the first to share your experience after rating this course 5 stars!
               </p>
             )}
           </div>
