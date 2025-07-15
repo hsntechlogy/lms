@@ -49,7 +49,11 @@ export const addCourse = async (req, res) => {
             if (!clerkUser) {
                 return res.json({ success: false, message: 'Educator not found' })
             }
-            
+            // Add check and logging for required fields
+            if (!educatorId || !clerkUser.imageUrl) {
+                console.error('Missing educatorId or imageUrl', { educatorId, imageUrl: clerkUser.imageUrl });
+                return res.status(400).json({ success: false, message: 'Educator ID and imageUrl are required.' });
+            }
             // Create User document if it doesn't exist
             educatorUser = await User.create({
                 _id: educatorId,

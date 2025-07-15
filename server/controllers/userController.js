@@ -130,7 +130,11 @@ export const updateUserCourseProgress = async (req, res) => {
         if (!courseId || courseId === 'undefined') {
             return res.json({ success: false, message: 'Invalid course ID' });
         }
-
+        // Add check and logging for userId
+        if (!userId) {
+            console.error('Missing userId in updateUserCourseProgress', { courseId, lectureId });
+            return res.status(400).json({ success: false, message: 'User ID is required.' });
+        }
         let progress = await CourseProgress.findOne({ userId, courseId });
         
         if (!progress) {
@@ -168,7 +172,11 @@ export const getUserCourseProgress = async (req, res) => {
                 } 
             });
         }
-
+        // Add check and logging for userId
+        if (!userId) {
+            console.error('Missing userId in getUserCourseProgress', { courseId });
+            return res.status(400).json({ success: false, message: 'User ID is required.' });
+        }
         const progress = await CourseProgress.findOne({ userId, courseId });
         
         if (!progress) {
