@@ -22,7 +22,7 @@ const Navbar = () => {
         return;
       }
       const token = await getToken()
-      const url = backendUrl.endsWith('/') ? backendUrl + 'api/educator/update-role' : backendUrl + '/api/educator/update-role';
+      const url = backendUrl.replace(/\/$/, '') + '/api/educator/update-role';
       const {data} = await axios.get(url,{headers:{Authorization:`Bearer ${token}`}})
 
       if (data.success) {

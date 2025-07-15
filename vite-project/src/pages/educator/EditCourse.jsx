@@ -33,7 +33,7 @@ const EditCourse = () => {
     try {
       const token = await getToken();
       const { data } = await axios.get(
-        `${backendUrl}/api/course/${courseId}`,
+        backendUrl.replace(/\/$/, '') + '/api/course/' + courseId,
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
@@ -198,7 +198,7 @@ const EditCourse = () => {
       }
 
       const { data } = await axios.put(
-        `${backendUrl}/api/educator/edit-course/${courseId}`,
+        backendUrl.replace(/\/$/, '') + '/api/educator/edit-course/' + courseId,
         submitData,
         {
           headers: {

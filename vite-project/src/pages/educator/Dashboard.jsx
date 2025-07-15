@@ -12,7 +12,7 @@ const Dashboard = () => {
   const fetchDashboardData = async () => {
    try {
       const token = await getToken()
-      const url = backendUrl.endsWith('/') ? backendUrl + 'api/educator/dashboard' : backendUrl + '/api/educator/dashboard';
+      const url = backendUrl.replace(/\/$/, '') + '/api/educator/dashboard';
       const {data} = await axios.get(url,{headers:{Authorization:`Bearer ${token}`}})
     if (data.success) {
       setDashboardData(data.dashboardData)

@@ -15,7 +15,7 @@ const MyCourses = () => {
   const fetchCourses = async () => {
     try {
       const token = await getToken();
-      const url = backendUrl.endsWith('/') ? `${backendUrl}api/educator/courses` : `${backendUrl}/api/educator/courses`;
+      const url = backendUrl.replace(/\/$/, '') + '/api/educator/courses';
       const { data } = await axios.get(url, {
         headers: {
           Authorization: `Bearer ${token}`,

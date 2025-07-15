@@ -79,7 +79,7 @@ const Player = () => {
   const markLectureAsCompleted = async (lectureId) => {
     try {
       const token = await getToken();
-      const url = backendUrl.endsWith('/') ? backendUrl + 'api/user/update-course-progress' : backendUrl + '/api/user/update-course-progress';
+      const url = backendUrl.replace(/\/$/, '') + '/api/user/update-course-progress';
       const { data } = await axios.post(
         url,
         { courseId, lectureId },
@@ -99,7 +99,7 @@ const Player = () => {
   const getCourseProgress = async () => {
     try {
       const token = await getToken();
-      const url = backendUrl.endsWith('/') ? backendUrl + 'api/user/get-course-progress' : backendUrl + '/api/user/get-course-progress';
+      const url = backendUrl.replace(/\/$/, '') + '/api/user/get-course-progress';
       const { data } = await axios.post(
         url,
         { courseId },
@@ -120,7 +120,7 @@ const Player = () => {
     try {
       const token = await getToken();
       const { data } = await axios.post(
-        backendUrl + '/api/user/add-rating',
+        backendUrl.replace(/\/$/, '') + '/api/user/add-rating',
         { courseId, rating },
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -152,7 +152,7 @@ const Player = () => {
 
   const fetchTestimonials = async () => {
     try {
-      const url = backendUrl.endsWith('/') ? `${backendUrl}api/user/testimonials/${courseId}` : `${backendUrl}/api/user/testimonials/${courseId}`;
+      const url = backendUrl.replace(/\/$/, '') + '/api/user/testimonials/' + courseId;
       const { data } = await axios.get(url);
       if (data.success) {
         setTestimonials(data.testimonials);
@@ -175,7 +175,7 @@ const Player = () => {
 
     try {
       const token = await getToken();
-      const url = backendUrl.endsWith('/') ? `${backendUrl}api/user/add-testimonial` : `${backendUrl}/api/user/add-testimonial`;
+      const url = backendUrl.replace(/\/$/, '') + '/api/user/add-testimonial';
       const { data } = await axios.post(
         url,
         { courseId, comment: testimonialComment },

@@ -46,7 +46,7 @@ const CourseDetails = () => {
     try {
       const token = await getToken();
       const { data } = await axios.post(
-        backendUrl + '/api/user/get-course-progress',
+        backendUrl.replace(/\/$/, '') + '/api/user/get-course-progress',
         { courseId: id },
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -65,7 +65,7 @@ const CourseDetails = () => {
     try {
       const token = await getToken();
       const { data } = await axios.post(
-        backendUrl + '/api/user/update-course-progress',
+        backendUrl.replace(/\/$/, '') + '/api/user/update-course-progress',
         { courseId: id, lectureId },
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -85,7 +85,7 @@ const CourseDetails = () => {
     try {
       const token = await getToken();
       const { data } = await axios.post(
-        backendUrl + '/api/user/update-course-progress',
+        backendUrl.replace(/\/$/, '') + '/api/user/update-course-progress',
         { courseId: id, lectureId },
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -107,7 +107,9 @@ const CourseDetails = () => {
         return;
       }
 
-      const { data } = await axios.get(backendUrl + '/api/course/' + id);
+      const { data } = await axios.get(
+        backendUrl.replace(/\/$/, '') + '/api/course/' + id
+      );
 
       if (data.success) {
         setCourseData(data.courseData);
@@ -130,7 +132,9 @@ const CourseDetails = () => {
     try {
       if (!id) return;
       
-      const { data } = await axios.get(`${backendUrl}/api/user/testimonials/${id}`);
+      const { data } = await axios.get(
+        backendUrl.replace(/\/$/, '') + '/api/user/testimonials/' + id
+      );
       if (data.success) {
         setTestimonials(data.testimonials);
       }
@@ -144,7 +148,7 @@ const CourseDetails = () => {
     try {
       const token = await getToken();
       const { data } = await axios.post(
-        backendUrl + '/api/user/add-rating',
+        backendUrl.replace(/\/$/, '') + '/api/user/add-rating',
         { courseId: id, rating },
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -188,7 +192,7 @@ const CourseDetails = () => {
     try {
       const token = await getToken();
       const { data } = await axios.post(
-        `${backendUrl}/api/user/add-testimonial`,
+        backendUrl.replace(/\/$/, '') + '/api/user/add-testimonial',
         { courseId: id, comment: testimonialComment },
         { headers: { Authorization: `Bearer ${token}` } }
       );

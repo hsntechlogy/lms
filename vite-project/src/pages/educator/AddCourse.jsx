@@ -105,7 +105,7 @@ const AddCourse = () => {
 
       const token = await getToken();
       const { data } = await axios.post(
-        backendUrl.endsWith('/') ? `${backendUrl}api/educator/add-course` : `${backendUrl}/api/educator/add-course`,
+        backendUrl.replace(/\/$/, '') + '/api/educator/add-course',
         formData,
         {
           headers: {
