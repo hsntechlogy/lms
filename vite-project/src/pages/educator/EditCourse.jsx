@@ -198,7 +198,7 @@ const EditCourse = () => {
       }
 
       const { data } = await axios.put(
-        backendUrl.replace(/\/$/, '') + '/api/educator/edit-course/' + courseId,
+        backendUrl.replace(/\/$/, '') + '/api/educator/course/' + courseId,
         submitData,
         {
           headers: {

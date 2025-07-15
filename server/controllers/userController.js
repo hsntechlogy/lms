@@ -206,8 +206,9 @@ export const addUserRating = async (req, res) => {
             return res.json({ success: false, message: 'Invalid course ID' });
         }
 
-        if (rating < 1 || rating > 5) {
-            return res.json({ success: false, message: 'Rating must be between 1 and 5' });
+        // Only allow 5-star ratings
+        if (rating !== 5) {
+            return res.json({ success: false, message: 'Only 5-star ratings are allowed.' });
         }
 
         const course = await Course.findById(courseId);
@@ -255,6 +256,14 @@ export const addTestimonial = async (req, res) => {
             return res.json({ success: false, message: 'Comment must be less than 500 characters' });
         }
 
+        // Appreciation words list
+        const appreciationWords = ['good', 'great', 'excellent', 'amazing', 'awesome', 'fantastic', 'wonderful', 'outstanding', 'superb', 'love', 'helpful', 'useful', 'best', 'brilliant', 'impressive', 'positive', 'enjoyed', 'liked', 'appreciate'];
+        const lowerComment = comment.toLowerCase();
+        const hasAppreciation = appreciationWords.some(word => lowerComment.includes(word));
+        if (!hasAppreciation) {
+            return res.json({ success: false, message: 'Your comment must include an appreciation word (e.g., good, excellent, etc.).' });
+        }
+
         // Check if comment is in English only
         if (!isEnglishOnly(comment)) {
             return res.json({ success: false, message: 'Please write your comment in English only' });
@@ -275,25 +284,24 @@ export const addTestimonial = async (req, res) => {
             return res.json({ success: false, message: 'You must be enrolled to add a testimonial' });
         }
 
-        // Check if user has rated the course 4 or 5 stars
+        // Check if user has rated the course 5 stars
         const userRating = course.courseRatings.find(r => r.userId === userId);
-        if (!userRating || userRating.rating < 4) {
-            return res.json({ success: false, message: 'You must rate the course 4 or 5 stars to add a testimonial' });
+        if (!userRating || userRating.rating !== 5) {
+            return res.json({ success: false, message: 'You must rate the course 5 stars to add a testimonial' });
         }
 
-        // Check if user has already added a testimonial
-        const existingTestimonial = course.testimonials.find(t => t.userId === userId);
-        if (existingTestimonial) {
-            return res.json({ success: false, message: 'You have already added a testimonial for this course' });
+        // Only allow up to 3 testimonials per user per course
+        const userTestimonials = course.testimonials.filter(t => t.userId === userId);
+        if (userTestimonials.length >= 3) {
+            return res.json({ success: false, message: 'You can only add up to 3 testimonials for this course.' });
         }
 
-        // Get user data
+        // Add testimonial
         const user = await User.findById(userId);
         if (!user) {
             return res.json({ success: false, message: 'User not found' });
         }
 
-        // Add testimonial
         course.testimonials.push({
             userId,
             userName: user.name,
