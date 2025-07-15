@@ -201,12 +201,35 @@ export const educatorDashboardData = async (req, res) => {
             return acc + courseRevenue
         }, 0)
 
+        // Gather latest enrollments (flattened)
+        let enrolledStudentsData = [];
+        for (const course of courses) {
+            // Find purchases for this course
+            const purchases = await Purchase.find({ courseId: course._id, status: 'completed' }).sort({ createdAt: -1 }).populate('userId');
+            for (const purchase of purchases) {
+                if (purchase.userId) {
+                    enrolledStudentsData.push({
+                        student: {
+                            name: purchase.userId.name,
+                            imageUrl: purchase.userId.imageUrl,
+                            _id: purchase.userId._id
+                        },
+                        courseTitle: course.courseTitle,
+                        purchaseData: purchase.createdAt
+                    });
+                }
+            }
+        }
+        // Sort by latest
+        enrolledStudentsData = enrolledStudentsData.sort((a, b) => new Date(b.purchaseData) - new Date(a.purchaseData));
+
         res.json({
             success: true,
-            data: {
+            dashboardData: {
                 totalCourses: courses.length,
                 totalStudents,
-                totalRevenue: totalRevenue.toFixed(2)
+                totalRevenue: totalRevenue.toFixed(2),
+                enrolledStudentsData
             }
         })
     } catch (error) {
@@ -218,15 +241,27 @@ export const educatorDashboardData = async (req, res) => {
 export const getEnrolledStudentsData = async (req, res) => {
     try {
         const educatorId = req.auth.userId
-        const courses = await Course.find({ educator: educatorId }).populate('enrolledStudents')
-        
-        const studentsData = courses.map(course => ({
-            courseId: course._id,
-            courseTitle: course.courseTitle,
-            students: course.enrolledStudents
-        }))
-
-        res.json({ success: true, studentsData })
+        const courses = await Course.find({ educator: educatorId })
+        let enrolledStudents = [];
+        for (const course of courses) {
+            const purchases = await Purchase.find({ courseId: course._id, status: 'completed' }).sort({ createdAt: -1 }).populate('userId');
+            for (const purchase of purchases) {
+                if (purchase.userId) {
+                    enrolledStudents.push({
+                        student: {
+                            name: purchase.userId.name,
+                            imageUrl: purchase.userId.imageUrl,
+                            _id: purchase.userId._id
+                        },
+                        courseTitle: course.courseTitle,
+                        purchaseData: purchase.createdAt
+                    });
+                }
+            }
+        }
+        // Sort by latest
+        enrolledStudents = enrolledStudents.sort((a, b) => new Date(b.purchaseData) - new Date(a.purchaseData));
+        res.json({ success: true, enrolledStudents });
     } catch (error) {
         res.json({ success: false, message: error.message })
     }
