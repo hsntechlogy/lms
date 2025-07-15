@@ -16,6 +16,7 @@ const CourseDetails = () => {
   const [openSections, setOpensections] = useState({});
   const [isAlreadyEnrolled, setIsAlreadyEnrolled] = useState(false);
   const [PlayerData, setPlayerData] = useState(null);
+  const [testimonials, setTestimonials] = useState([]);
 
   const {
     allCourses,
@@ -32,7 +33,13 @@ const CourseDetails = () => {
 
   const fetchCourseData = async () => {
     try {
-      const { data } = await axios.get(backendUrl + '/api/course/' + id);
+      if (!id) {
+        toast.error('Course ID is missing');
+        return;
+      }
+
+      const url = backendUrl.endsWith('/') ? backendUrl + 'api/course/' + id : backendUrl + '/api/course/' + id;
+      const { data } = await axios.get(url);
 
       if (data.success) {
         setCourseData(data.courseData);
@@ -44,14 +51,32 @@ const CourseDetails = () => {
     }
   };
 
+  const fetchTestimonials = async () => {
+    try {
+      if (!id) return;
+      
+      const url = backendUrl.endsWith('/') ? `${backendUrl}api/user/testimonials/${id}` : `${backendUrl}/api/user/testimonials/${id}`;
+      const { data } = await axios.get(url);
+      if (data.success) {
+        setTestimonials(data.testimonials);
+      }
+    } catch (error) {
+      console.error('Error fetching testimonials:', error);
+    }
+  };
+
   const enrollCourse = async () => {
     try {
       if (!userData) return toast.warn('Login to Enroll');
       if (isAlreadyEnrolled) return toast.warn('Already Enrolled');
+      if (!courseData || !courseData._id) {
+        return toast.error('Course data is missing');
+      }
 
       const token = await getToken();
+      const url = backendUrl.endsWith('/') ? backendUrl + 'api/user/purchase' : backendUrl + '/api/user/purchase';
       const { data } = await axios.post(
-        backendUrl + '/api/user/purchase',
+        url,
         { courseId: courseData._id },
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -68,8 +93,11 @@ const CourseDetails = () => {
   };
 
   useEffect(() => {
-    fetchCourseData();
-  }, []);
+    if (id) {
+      fetchCourseData();
+      fetchTestimonials();
+    }
+  }, [id]);
 
   useEffect(() => {
     if (userData && courseData && enrolledCourses) {
@@ -88,60 +116,14 @@ const CourseDetails = () => {
 
   return (
     <>
-      {/* JSX remains unchanged */}
-      {/* ...your full JSX content goes here... */}
-      <div className="flex md:flex-row flex-col-reverse gap-10 relative items-start justify-between md:px-36 px-8 md:pt-30 pt-20 text-left">
-        <div className="absolute top-0 left-0 w-full h-section-height -z-1 bg-gradient-to-b from-cyan-100/70"></div>
+      <div className="p-4 sm:p-10 flex flex-col-reverse md:grid-cols-2 gap-10 md:px-36">
+        {/* Left Column */}
+        <div className="text-gray-800">
+          <h2 className="text-xl font-semibold">Course Structure</h2>
 
-        {/* Left column */}
-        <div>
-          <h1 className="md:text-course-deatails-heading-large text-course-deatails-heading-small font-semibold text-gray-800">
-            {courseData.courseTitle}
-          </h1>
-
-          <p
-            className="pt-4 md:text-base text-sm"
-            dangerouslySetInnerHTML={{
-              __html: courseData.courseDescription.slice(0, 200),
-            }}
-          ></p>
-
-          {/* Review and rating */}
-          <div className="flex items-center space-x-2 pb-1 pt-3 text-sm">
-            <p>{CalculateRating(courseData)}</p>
-            <div className="flex">
-              {[...Array(5)].map((_, i) => (
-                <img
-                  key={i}
-                  src={
-                    i < Math.floor(CalculateRating(courseData))
-                      ? assets.star
-                      : assets.star_blank
-                  }
-                  alt=""
-                  className="w-3.5 h-3.5"
-                />
-              ))}
-            </div>
-            <p className="text-blue-600">
-              ({courseData.courseRatings.length}{' '}
-              {courseData.courseRatings.length > 1 ? 'ratings' : 'rating'})
-            </p>
-            <p>
-              {courseData.courseRatings.length}{' '}
-              {courseData.courseRatings.length > 1 ? 'students' : 'student'}
-            </p>
-          </div>
-
-          <p className="text-sm">
-            Course by <span className="text-blue-600 underline">{courseData.educator.name}</span>
-          </p>
-
-          {/* Course structure */}
-          <div className="pt-8 text-gray-800">
-            <h2 className="text-xl font-semibold">Course Structure</h2>
-            <div className="pt-5">
-              {courseData.courseContent.map((chapter, index) => (
+          <div className="pt-5">
+            {courseData &&
+              courseData.courseContent.map((chapter, index) => (
                 <div key={index} className="border border-gray-300 bg-white mb-2 rounded">
                   <div
                     className="flex items-center justify-between px-4 py-3 cursor-pointer select-none"
@@ -155,13 +137,10 @@ const CourseDetails = () => {
                         src={assets.down_arrow_icon}
                         alt="arrow icon"
                       />
-                      <p className="font-medium md:text-base text-sm">
-                        {chapter.chapterTitle}
-                      </p>
+                      <p className="font-medium md:text-base text-sm">{chapter.chapterTitle}</p>
                     </div>
                     <p className="text-sm md:text-default">
-                      {chapter.chapterContent.length} lectures -{' '}
-                      {calculateChapterTime(chapter)}
+                      {chapter.chapterContent.length} lectures - {calculateChapterTime(chapter)}
                     </p>
                   </div>
 
@@ -181,16 +160,18 @@ const CourseDetails = () => {
                           <div className="flex items-center justify-between w-full text-gray-800 text-xs md:text-default">
                             <p>{lecture.lectureTitle}</p>
                             <div className="flex gap-2">
-                              {lecture.isPreviewFree && (
+                              {lecture.lectureUrl && (
                                 <p
                                   onClick={() =>
                                     setPlayerData({
-                                      videoId: lecture.lectureUrl.split('/').pop(),
+                                      ...lecture,
+                                      chapter: index + 1,
+                                      lecture: i + 1,
                                     })
                                   }
-                                  className="text-blue-500 cursor-pointer"
+                                  className="text-blue-500 cursor-pointer hover:text-blue-700"
                                 >
-                                  Preview
+                                  watch
                                 </p>
                               )}
                               <p>
@@ -206,24 +187,14 @@ const CourseDetails = () => {
                   </div>
                 </div>
               ))}
-            </div>
-          </div>
-
-          {/* Full description */}
-          <div className="py-20 text-sm md:text-default">
-            <h3 className="text-xl font-semibold text-gray-800">Course Description</h3>
-            <p
-              className="pt-3 rich-text"
-              dangerouslySetInnerHTML={{ __html: courseData.courseDescription }}
-            ></p>
           </div>
 
           {/* Testimonials Section */}
-          <div className="py-10 text-sm md:text-default">
-            <h3 className="text-xl font-semibold text-gray-800 mb-6">Student Testimonials</h3>
-            {courseData.testimonials && courseData.testimonials.length > 0 ? (
-              <div className="grid gap-4 md:grid-cols-2">
-                {courseData.testimonials.map((testimonial, index) => (
+          <div className="mt-10">
+            <h2 className="text-xl font-bold mb-4">Student Testimonials</h2>
+            {testimonials && testimonials.length > 0 ? (
+              <div className="space-y-4">
+                {testimonials.map((testimonial, index) => (
                   <div key={index} className="border border-gray-300 rounded p-4 bg-gray-50">
                     <div className="flex items-center gap-3 mb-3">
                       <img
@@ -265,7 +236,7 @@ const CourseDetails = () => {
           </div>
         </div>
 
-        {/* Right column */}
+        {/* Right Column */}
         <div className="max-w-course-card z-10 shadow-custom-card rounded-t md:rounded-none overflow-hidden bg-white min-w-[300px] sm:min-w-[420px]">
           {PlayerData ? (
             <Youtube
@@ -277,66 +248,58 @@ const CourseDetails = () => {
             <img src={courseData.courseThumbnail} alt="" />
           )}
 
-          <div className="p-5">
-            <div className="flex items-center gap-2">
-              <img
-                className="w-3.5"
-                src={assets.time_left_clock_icon}
-                alt="time left clock icon"
-              />
-              <p className="text-red-500">
-                <span className="font-medium">5 days </span>left at this price!
-              </p>
-            </div>
+          <div className="p-4">
+            <h1 className="text-2xl font-bold mb-2">{courseData.courseTitle}</h1>
+            <p className="text-gray-600 mb-4">{courseData.educator?.name || 'Unknown Educator'}</p>
 
-            <div className="flex gap-3 items-center pt-2">
-              <p className="text-gray-800 md:text-4xl text-2xl font-semibold">
-                {currency}
-                {(
-                  courseData.coursePrice -
-                  (courseData.discount * courseData.coursePrice) / 100
-                ).toFixed(2)}
-              </p>
-              <p className="md:text-lg text-gray-500 line-through">
-                {currency}
-                {courseData.coursePrice}
-              </p>
-              <p className="md:text-lg text-gray-500">{courseData.discount}% off</p>
-            </div>
-
-            <div className="flex items-center text-sm md:text-default gap-4 pt-2 md:pt-4 text-gray-500">
+            <div className="flex items-center gap-2 mb-4">
               <div className="flex items-center gap-1">
-                <img src={assets.star} alt="" />
-                <p>{CalculateRating(courseData)}</p>
+                {[...Array(5)].map((_, i) => (
+                  <img
+                    key={i}
+                    src={i < Math.floor(CalculateRating(courseData)) ? assets.star : assets.star_blank}
+                    alt=""
+                    className="w-4 h-4"
+                  />
+                ))}
               </div>
-              <div className="h-4 w-px bg-gray-500/40"></div>
-              <img src={assets.time_clock_icon} alt="time clock icon" />
-              <p>{calculateCourseDuration(courseData)}</p>
+              <span className="text-gray-500">({courseData.courseRatings?.length || 0} ratings)</span>
             </div>
 
-            <div className="flex items-center gap-2 pt-3 text-gray-500">
-              <img src={assets.lesson_icon} alt="lesson icon" />
-              <p>{calculateNoOfLectures(courseData)} lessons</p>
+            <div className="flex items-center gap-4 text-sm text-gray-500 mb-4">
+              <span>{calculateNoOfLectures(courseData)} lectures</span>
+              <span>{calculateCourseDuration(courseData)}</span>
             </div>
 
-            <button onClick={enrollCourse} className="md:mt-6 mt-4 w-full py-3 rounded bg-blue-600 text-white font-medium">
-              {isAlreadyEnrolled ? 'Already Enrolled' : 'Enroll Now'}
-            </button>
+            <div className="mb-4">
+              <div
+                className="rich-text"
+                dangerouslySetInnerHTML={{ __html: courseData.courseDescription }}
+              />
+            </div>
 
-            <div className="pt-5">
-              <p className="md:text-xl text-lg font-medium text-gray-800">
-                What's in the course
-              </p>
-              <ul className="ml-4 pt-2 text-sm md:text-default list-disc text-gray-500">
-                <li>Lifetime access with free updates</li>
-                <li>Step by step, hands-on project guidance</li>
-                <li>Downloadable resources and source code</li>
-                <li>Quizzes to test your knowledge</li>
-              </ul>
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <span className="text-2xl font-bold text-blue-600">
+                  {currency} {(courseData.coursePrice - courseData.discount * courseData.coursePrice / 100).toFixed(2)}
+                </span>
+                {courseData.discount > 0 && (
+                  <span className="text-gray-500 line-through ml-2">
+                    {currency} {courseData.coursePrice}
+                  </span>
+                )}
+              </div>
+              <button
+                onClick={enrollCourse}
+                className="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700 transition-colors"
+              >
+                {isAlreadyEnrolled ? 'Already Enrolled' : 'Enroll Now'}
+              </button>
             </div>
           </div>
         </div>
       </div>
+
       <Footer />
     </>
   );

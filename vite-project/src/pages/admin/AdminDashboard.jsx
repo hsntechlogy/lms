@@ -13,7 +13,8 @@ const AdminDashboard = () => {
     try {
       const token = await getToken();
       // You'll need to create this endpoint in your backend
-      const { data } = await axios.get(`${backendUrl}/api/admin/users`, {
+      const url = backendUrl.endsWith('/') ? `${backendUrl}api/admin/users` : `${backendUrl}/api/admin/users`;
+      const { data } = await axios.get(url, {
         headers: { Authorization: `Bearer ${token}` }
       });
       
@@ -33,7 +34,7 @@ const AdminDashboard = () => {
     try {
       const token = await getToken();
       const { data } = await axios.post(
-        `${backendUrl}/api/educator/promote-user`,
+        backendUrl.endsWith('/') ? `${backendUrl}api/educator/promote-user` : `${backendUrl}/api/educator/promote-user`,
         { targetUserId: userId },
         { headers: { Authorization: `Bearer ${token}` } }
       );

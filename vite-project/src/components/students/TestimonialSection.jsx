@@ -11,7 +11,8 @@ const TestimonialsSection = () => {
   const fetchAllTestimonials = async () => {
     try {
       setLoading(true);
-      const { data } = await axios.get(`${backendUrl}/api/course/all`);
+      const url = backendUrl.endsWith('/') ? `${backendUrl}api/course/all` : `${backendUrl}/api/course/all`;
+      const { data } = await axios.get(url);
       
       if (data.success) {
         // Collect all testimonials from all courses

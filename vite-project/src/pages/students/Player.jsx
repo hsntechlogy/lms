@@ -18,10 +18,16 @@ const Player = () => {
   const [testimonialComment, setTestimonialComment] = useState('');
   const [testimonials, setTestimonials] = useState([]);
 
-  const { enrolledCourses, calculateChapterTime,backendUrl,getToken,userData,fetchUserEnrolledCourses } = useContext(AppContext);
+  const { enrolledCourses, calculateChapterTime, backendUrl, getToken, userData, fetchUserEnrolledCourses } = useContext(AppContext);
   const { courseId } = useParams();
-  const [progressData,setProgressData]=useState(null)
-  const [initialRating,setInitialRating]=useState(0)
+  const [progressData, setProgressData] = useState(null);
+  const [initialRating, setInitialRating] = useState(0);
+
+  // Function to check if text contains only English characters
+  const isEnglishOnly = (text) => {
+    const englishRegex = /^[a-zA-Z0-9\s.,!?@#$%^&*()_+\-=\[\]{};':"\\|<>\/\n\r]*$/;
+    return englishRegex.test(text);
+  };
 
   // Function to extract YouTube video ID from URL
   const extractVideoId = (url) => {
@@ -48,18 +54,18 @@ const Player = () => {
       if (course._id == courseId) {
         setCourseData(course);
         course.courseRatings.map((item) => {
-          if(item.userId === userData._id){
-            setInitialRating(item.rating)
+          if (item.userId === userData._id) {
+            setInitialRating(item.rating);
           }
-        })
+        });
       }
     });
   };
 
   useEffect(() => {
-   if(enrolledCourses.length>0){
-    getCourseData();
-    }  
+    if (enrolledCourses.length > 0) {
+      getCourseData();
+    }
   }, [enrolledCourses]);
 
   const toggleSection = (index) => {
@@ -71,54 +77,79 @@ const Player = () => {
 
   const markLectureAsCompleted = async (lectureId) => {
     try {
-      const token = await getToken()
-      const {data} = await axios.post(backendUrl+'/api/user/update-course-progress',{courseId,lectureId},{headers:{Authorization:`Bearer ${token}`}})
-      if(data.success){
-        toast.success(data.message)
-        getCourseProgress()
-      }else{
-        toast.error(data.message)
+      const token = await getToken();
+      const url = backendUrl.endsWith('/') ? backendUrl + 'api/user/update-course-progress' : backendUrl + '/api/user/update-course-progress';
+      const { data } = await axios.post(
+        url,
+        { courseId, lectureId },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      if (data.success) {
+        toast.success(data.message);
+        getCourseProgress();
+      } else {
+        toast.error(data.message);
       }
     } catch (error) {
-      toast.error(error.message)
+      toast.error(error.message);
     }
-  }
+  };
 
-  const getCourseProgress =async () => {
+  const getCourseProgress = async () => {
     try {
-      const token= await getToken()
-      const {data}= await axios.post(backendUrl+'/api/user/get-course-progress',{courseId},{headers:{Authorization:`Bearer ${token}`
-      }})
-      if (data.success){
-        setProgressData(data.progressData)
-      }else{
-        toast.error(data.message)
+      const token = await getToken();
+      const url = backendUrl.endsWith('/') ? backendUrl + 'api/user/get-course-progress' : backendUrl + '/api/user/get-course-progress';
+      const { data } = await axios.post(
+        url,
+        { courseId },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      if (data.success) {
+        setProgressData(data.progressData);
+      } else {
+        toast.error(data.message);
       }
     } catch (error) {
-   toast.error(error.message)
-      
+      toast.error(error.message);
     }
-  }
+  };
 
   const handleRate = async (rating) => {
     try {
-      const token = await getToken()
-      const {data } = await axios.post(backendUrl+'/api/user/add-rating',{courseId,rating},{headers:{Authorization:`Bearer ${token}`}})
+      const token = await getToken();
+      const url = backendUrl.endsWith('/') ? backendUrl + 'api/user/add-rating' : backendUrl + '/api/user/add-rating';
+      const { data } = await axios.post(
+        url,
+        { courseId, rating },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
 
-       if (data.success){
-          toast.success(data.message)
-          fetchUserEnrolledCourses()
-        }else{
-          toast.error(data.message)
+      if (data.success) {
+        toast.success(data.message);
+        fetchUserEnrolledCourses();
+        // Update the local course data to reflect the new rating
+        if (courseData) {
+          const updatedCourse = { ...courseData };
+          const existingRatingIndex = updatedCourse.courseRatings.findIndex(r => r.userId === userData._id);
+          if (existingRatingIndex > -1) {
+            updatedCourse.courseRatings[existingRatingIndex].rating = rating;
+          } else {
+            updatedCourse.courseRatings.push({ userId: userData._id, rating });
+          }
+          setCourseData(updatedCourse);
         }
+      } else {
+        toast.error(data.message);
+      }
     } catch (error) {
-      toast.error(error.message)
+      toast.error(error.message);
     }
-  }
+  };
 
   const fetchTestimonials = async () => {
     try {
-      const { data } = await axios.get(`${backendUrl}/api/user/testimonials/${courseId}`);
+      const url = backendUrl.endsWith('/') ? `${backendUrl}api/user/testimonials/${courseId}` : `${backendUrl}/api/user/testimonials/${courseId}`;
+      const { data } = await axios.get(url);
       if (data.success) {
         setTestimonials(data.testimonials);
       }
@@ -133,10 +164,16 @@ const Player = () => {
       return;
     }
 
+    if (!isEnglishOnly(testimonialComment)) {
+      toast.error('Please write your comment in English only');
+      return;
+    }
+
     try {
       const token = await getToken();
+      const url = backendUrl.endsWith('/') ? `${backendUrl}api/user/add-testimonial` : `${backendUrl}/api/user/add-testimonial`;
       const { data } = await axios.post(
-        `${backendUrl}/api/user/add-testimonial`,
+        url,
         { courseId, comment: testimonialComment },
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -146,6 +183,22 @@ const Player = () => {
         setTestimonialComment('');
         setShowTestimonialForm(false);
         fetchTestimonials();
+        // Update local course data
+        if (courseData) {
+          const updatedCourse = { ...courseData };
+          const userRating = updatedCourse.courseRatings.find(r => r.userId === userData._id);
+          if (userRating) {
+            updatedCourse.testimonials.push({
+              userId: userData._id,
+              userName: userData.name,
+              userImage: userData.imageUrl,
+              rating: userRating.rating,
+              comment: testimonialComment,
+              createdAt: new Date()
+            });
+            setCourseData(updatedCourse);
+          }
+        }
       } else {
         toast.error(data.message);
       }
@@ -163,10 +216,10 @@ const Player = () => {
     return userRating && userRating.rating >= 4 && !hasTestimonial;
   };
 
-  useEffect(()=>{
-    getCourseProgress()
-    fetchTestimonials()
-  },[])
+  useEffect(() => {
+    getCourseProgress();
+    fetchTestimonials();
+  }, []);
 
   return courseData ? (
     <>
@@ -207,7 +260,7 @@ const Player = () => {
                       {chapter.chapterContent.map((lecture, i) => (
                         <li key={i} className="flex gap-2 py-1 items-start">
                           <img
-                            src={progressData&&progressData.lectureCompleted.includes(lecture.lectureId) ? assets.blue_tick_icon : assets.play_icon}
+                            src={progressData && progressData.lectureCompleted.includes(lecture.lectureId) ? assets.blue_tick_icon : assets.play_icon}
                             alt="play icon"
                             className="w-4 h-4 mt-1"
                           />
@@ -223,7 +276,7 @@ const Player = () => {
                                       lecture: i + 1,
                                     })
                                   }
-                                  className="text-blue-500 cursor-pointer"
+                                  className="text-blue-500 cursor-pointer hover:text-blue-700"
                                 >
                                   watch
                                 </p>
@@ -243,6 +296,7 @@ const Player = () => {
               ))}
           </div>
 
+          {/* Rating Section */}
           <div className="flex items-center gap-2 py-3 mt-10">
             <h1 className="text-xl font-bold">Rate this course</h1>
             <Rating initialRating={initialRating} onRate={handleRate} />
@@ -256,28 +310,36 @@ const Player = () => {
               <div className="mb-6">
                 <button
                   onClick={() => setShowTestimonialForm(!showTestimonialForm)}
-                  className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+                  className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition-colors"
                 >
                   {showTestimonialForm ? 'Cancel' : 'Add Testimonial'}
                 </button>
                 
                 {showTestimonialForm && (
-                  <div className="mt-4 p-4 border border-gray-300 rounded">
+                  <div className="mt-4 p-4 border border-gray-300 rounded bg-gray-50">
                     <textarea
                       value={testimonialComment}
                       onChange={(e) => setTestimonialComment(e.target.value)}
-                      placeholder="Share your experience with this course (10-500 characters)..."
-                      className="w-full p-2 border border-gray-300 rounded resize-none"
+                      placeholder="Share your experience with this course in English only (10-500 characters)..."
+                      className="w-full p-2 border border-gray-300 rounded resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
                       rows="4"
                       maxLength="500"
                     />
                     <div className="flex justify-between items-center mt-2">
                       <span className="text-sm text-gray-500">
                         {testimonialComment.length}/500 characters
+                        {!isEnglishOnly(testimonialComment) && testimonialComment.length > 0 && (
+                          <span className="text-red-500 ml-2">English only</span>
+                        )}
                       </span>
                       <button
                         onClick={handleAddTestimonial}
-                        className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
+                        disabled={!isEnglishOnly(testimonialComment) || testimonialComment.length < 10}
+                        className={`px-4 py-2 rounded transition-colors ${
+                          isEnglishOnly(testimonialComment) && testimonialComment.length >= 10
+                            ? 'bg-green-600 text-white hover:bg-green-700'
+                            : 'bg-gray-400 text-gray-600 cursor-not-allowed'
+                        }`}
                       >
                         Submit Testimonial
                       </button>
@@ -288,47 +350,47 @@ const Player = () => {
             )}
 
             {/* Display Testimonials */}
-            <div className="space-y-4">
-              {testimonials.map((testimonial, index) => (
-                <div key={index} className="border border-gray-300 rounded p-4 bg-gray-50">
-                  <div className="flex items-center gap-3 mb-3">
-                    <img
-                      src={testimonial.userImage || assets.profile_img_1}
-                      alt={testimonial.userName}
-                      className="w-10 h-10 rounded-full"
-                      onError={(e) => {
-                        e.target.src = assets.profile_img_1;
-                      }}
-                    />
-                    <div>
-                      <h4 className="font-semibold">{testimonial.userName}</h4>
-                      <div className="flex items-center gap-1">
-                        {[...Array(5)].map((_, i) => (
-                          <span
-                            key={i}
-                            className={`text-sm ${
-                              i < testimonial.rating ? 'text-yellow-500' : 'text-gray-300'
-                            }`}
-                          >
-                            ★
-                          </span>
-                        ))}
+            {testimonials && testimonials.length > 0 ? (
+              <div className="space-y-4">
+                {testimonials.map((testimonial, index) => (
+                  <div key={index} className="border border-gray-300 rounded p-4 bg-gray-50">
+                    <div className="flex items-center gap-3 mb-3">
+                      <img
+                        src={testimonial.userImage || assets.profile_img_1}
+                        alt={testimonial.userName}
+                        className="w-10 h-10 rounded-full"
+                        onError={(e) => {
+                          e.target.src = assets.profile_img_1;
+                        }}
+                      />
+                      <div>
+                        <h4 className="font-semibold">{testimonial.userName}</h4>
+                        <div className="flex items-center gap-1">
+                          {[...Array(5)].map((_, i) => (
+                            <span
+                              key={i}
+                              className={`text-sm ${
+                                i < testimonial.rating ? 'text-yellow-500' : 'text-gray-300'
+                              }`}
+                            >
+                              ★
+                            </span>
+                          ))}
+                        </div>
                       </div>
                     </div>
+                    <p className="text-gray-700">{testimonial.comment}</p>
+                    <p className="text-xs text-gray-500 mt-2">
+                      {new Date(testimonial.createdAt).toLocaleDateString()}
+                    </p>
                   </div>
-                  <p className="text-gray-700">{testimonial.comment}</p>
-                  <p className="text-xs text-gray-500 mt-2">
-                    {new Date(testimonial.createdAt).toLocaleDateString()}
-                  </p>
-                </div>
-              ))}
-              
-              {testimonials.length === 0 && (
-                <p className="text-gray-500 text-center py-4">
-                  No testimonials yet. Be the first to share your experience!
-                </p>
-              )}
-            </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-gray-500 text-center py-8">
+                No testimonials yet. Be the first to share your experience after rating this course 4 or 5 stars!
+              </p>
+            )}
           </div>
         </div>
 
@@ -336,38 +398,60 @@ const Player = () => {
         <div className="md:mt-10">
           {playerData ? (
             <div>
-              <YouTube
-                videoId={extractVideoId(playerData.lectureUrl)}
-                iframeClassName="w-full aspect-video"
-                onError={(error) => console.error('YouTube player error:', error)}
-              />
-              <div className="flex justify-between items-center mt-1">
-                <p>
+              <div className="relative">
+                <YouTube
+                  videoId={extractVideoId(playerData.lectureUrl)}
+                  iframeClassName="w-full aspect-video rounded"
+                  onError={(error) => {
+                    console.error('YouTube player error:', error);
+                    toast.error('Error loading video. Please check the URL.');
+                  }}
+                  opts={{
+                    playerVars: {
+                      autoplay: 1,
+                      modestbranding: 1,
+                      rel: 0
+                    }
+                  }}
+                />
+              </div>
+              <div className="flex justify-between items-center mt-4 p-3 bg-gray-50 rounded">
+                <p className="font-medium">
                   {playerData.chapter}.{playerData.lecture} {playerData.lectureTitle}
                 </p>
                 <button 
-                  onClick={()=>markLectureAsCompleted(playerData.lectureId)} 
-                  className="text-blue-600 hover:text-blue-800 font-medium"
+                  onClick={() => markLectureAsCompleted(playerData.lectureId)} 
+                  className={`px-4 py-2 rounded font-medium transition-colors ${
+                    progressData && progressData.lectureCompleted.includes(playerData.lectureId)
+                      ? 'bg-green-600 text-white hover:bg-green-700'
+                      : 'bg-blue-600 text-white hover:bg-blue-700'
+                  }`}
                 >
-                  {progressData&&progressData.lectureCompleted.includes(playerData.lectureId) ? '✓ Completed' : 'Mark as completed'}
+                  {progressData && progressData.lectureCompleted.includes(playerData.lectureId) ? '✓ Completed' : 'Mark as completed'}
                 </button>
               </div>
             </div>
           ) : (
-            <img 
-              src={courseData ? courseData.courseThumbnail : ''} 
-              alt="Course thumbnail"
-              onError={(e) => {
-                e.target.src = assets.course_1;
-              }}
-            />
+            <div className="text-center">
+              <img 
+                src={courseData ? courseData.courseThumbnail : ''} 
+                alt="Course thumbnail"
+                className="w-full rounded"
+                onError={(e) => {
+                  e.target.src = assets.course_1;
+                }}
+              />
+              <p className="mt-4 text-gray-600">Select a lecture to start watching</p>
+            </div>
           )}
         </div>
       </div>
 
       <Footer />
     </>
-  ):<Loading/>
-}
+  ) : (
+    <Loading />
+  );
+};
 
 export default Player;

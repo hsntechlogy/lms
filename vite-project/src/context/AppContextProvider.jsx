@@ -20,8 +20,9 @@ export const AppContextProvider = ({ children }) => {
   // Fetch all courses
   const fetchAllCourses = async () => {
      try {
-      console.log('Fetching courses from:', backendUrl + '/api/course/all');
-      const {data}= await axios.get(backendUrl + '/api/course/all' )
+      const url = backendUrl.endsWith('/') ? backendUrl + 'api/course/all' : backendUrl + '/api/course/all';
+      console.log('Fetching courses from:', url);
+      const {data}= await axios.get(url)
 
       if (data.success) {
         console.log('Courses fetched successfully:', data.course.length);
@@ -40,8 +41,9 @@ export const AppContextProvider = ({ children }) => {
   const fetchUserData = async () => {
     try {
         const token = await getToken()
+        const url = backendUrl.endsWith('/') ? backendUrl + 'api/user/data' : backendUrl + '/api/user/data';
 
-        const {data} = await axios.get(backendUrl +'/api/user/data',{headers:{
+        const {data} = await axios.get(url,{headers:{
           Authorization:`Bearer ${token}`
         }})
         if (data.success) {
@@ -101,7 +103,8 @@ export const AppContextProvider = ({ children }) => {
   const fetchUserEnrolledCourses = async () => {
     try {
         const token = await getToken();
-      const {data} = await axios.get(backendUrl+'/api/user/enrolled-courses',
+        const url = backendUrl.endsWith('/') ? backendUrl + 'api/user/enrolled-courses' : backendUrl + '/api/user/enrolled-courses';
+      const {data} = await axios.get(url,
         {headers:{Authorization:`Bearer ${token}`}})
 
         if (data.success) {

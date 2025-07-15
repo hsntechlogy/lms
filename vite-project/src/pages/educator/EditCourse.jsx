@@ -1,22 +1,24 @@
 import React, { useRef, useState, useEffect, useContext } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
 import uniqid from 'uniqid';
 import Quill from 'quill';
 import { assets } from '../../assets/assets';
 import { AppContext } from '../../context/AppContext';
 import { toast } from 'react-toastify';
 import axios from 'axios';
-import { useNavigate } from 'react-router-dom';
 
-const AddCourse = () => {
+const EditCourse = () => {
+  const { courseId } = useParams();
+  const navigate = useNavigate();
   const quillRef = useRef(null);
   const editorRef = useRef(null);
-  const { backendUrl, getToken, fetchAllCourses } = useContext(AppContext);
-  const navigate = useNavigate();
+  const { backendUrl, getToken } = useContext(AppContext);
   
   const [courseTitle, setCourseTitle] = useState('');
   const [coursePrice, setCoursePrice] = useState(0);
   const [discount, setDiscount] = useState(0);
   const [image, setImage] = useState(null);
+  const [existingImage, setExistingImage] = useState('');
   const [chapters, setChapters] = useState([]);
   const [showPopup, setShowPopup] = useState(false);
   const [currentChapterId, setCurrentChapterId] = useState(null);
@@ -26,7 +28,57 @@ const AddCourse = () => {
     lectureUrl: '',
     isPreviewFree: false,
   });
-  const [submitting, setSubmitting] = useState(false);
+  const [loading, setLoading] = useState(true);
+
+  // Fetch course data for editing
+  useEffect(() => {
+    const fetchCourseData = async () => {
+      try {
+        const token = await getToken();
+        const { data } = await axios.get(
+          backendUrl.endsWith('/') ? `${backendUrl}api/educator/course/${courseId}` : `${backendUrl}/api/educator/course/${courseId}`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+
+        if (data.success) {
+          const course = data.course;
+          setCourseTitle(course.courseTitle);
+          setCoursePrice(course.coursePrice);
+          setDiscount(course.discount);
+          setExistingImage(course.courseThumbnail);
+          setChapters(course.courseContent || []);
+          
+          // Set Quill content
+          if (quillRef.current) {
+            quillRef.current.root.innerHTML = course.courseDescription;
+          }
+        } else {
+          toast.error(data.message);
+          navigate('/educator/my-courses');
+        }
+      } catch (error) {
+        toast.error(error.message);
+        navigate('/educator/my-courses');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchCourseData();
+  }, [courseId, backendUrl, getToken, navigate]);
+
+  // Initialize Quill editor
+  useEffect(() => {
+    if (!quillRef.current && editorRef.current) {
+      quillRef.current = new Quill(editorRef.current, {
+        theme: 'snow',
+      });
+    }
+  }, []);
 
   const handleChapter = (action, chapterId) => {
     if (action === 'add') {
@@ -80,17 +132,7 @@ const AddCourse = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
-    if (submitting) return;
-    
     try {
-      setSubmitting(true);
-      
-      if (!image) {
-        toast.error('Thumbnail Not Selected');
-        return;
-      }
-
       const courseData = {
         courseTitle,
         courseDescription: quillRef.current.root.innerHTML,
@@ -101,11 +143,13 @@ const AddCourse = () => {
 
       const formData = new FormData();
       formData.append('courseData', JSON.stringify(courseData));
-      formData.append('image', image);
+      if (image) {
+        formData.append('image', image);
+      }
 
       const token = await getToken();
-      const { data } = await axios.post(
-        backendUrl.endsWith('/') ? `${backendUrl}api/educator/add-course` : `${backendUrl}/api/educator/add-course`,
+      const { data } = await axios.put(
+        backendUrl.endsWith('/') ? `${backendUrl}api/educator/course/${courseId}` : `${backendUrl}/api/educator/course/${courseId}`,
         formData,
         {
           headers: {
@@ -116,43 +160,28 @@ const AddCourse = () => {
 
       if (data.success) {
         toast.success(data.message);
-        
-        // Reset form
-        setCourseTitle('');
-        setCoursePrice(0);
-        setDiscount(0);
-        setImage(null);
-        setChapters([]);
-        quillRef.current.root.innerHTML = '';
-        
-        // Refresh courses data
-        await fetchAllCourses();
-        
-        // Navigate to my courses
         navigate('/educator/my-courses');
       } else {
         toast.error(data.message);
       }
     } catch (error) {
       toast.error(error.message);
-    } finally {
-      setSubmitting(false);
     }
   };
 
-  useEffect(() => {
-    if (!quillRef.current && editorRef.current) {
-      quillRef.current = new Quill(editorRef.current, {
-        theme: 'snow',
-      });
-    }
-  }, []);
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <div className="text-xl">Loading...</div>
+      </div>
+    );
+  }
 
   return (
     <div className='h-screen overflow-scroll flex flex-col items-start justify-between md:p-8 md:pb-0 p-4 pt-8 pb-0'>
       <form onSubmit={handleSubmit} className='flex flex-col gap-4 max-w-md w-full text-gray-500'>
         <div className="flex items-center justify-between mb-4">
-          <h1 className="text-2xl font-bold text-gray-800">Add New Course</h1>
+          <h1 className="text-2xl font-bold text-gray-800">Edit Course</h1>
           <button
             type="button"
             onClick={() => navigate('/educator/my-courses')}
@@ -205,7 +234,14 @@ const AddCourse = () => {
                 accept='image/*'
                 hidden
               />
-              <img className='max-h-10' src={image ? URL.createObjectURL(image) : ''} alt='' />
+              <img 
+                className='max-h-10' 
+                src={image ? URL.createObjectURL(image) : existingImage} 
+                alt='' 
+                onError={(e) => {
+                  e.target.src = assets.course_1;
+                }}
+              />
             </label>
           </div>
         </div>
@@ -290,16 +326,8 @@ const AddCourse = () => {
           + Add Chapter
         </div>
 
-        <button 
-          type='submit' 
-          disabled={submitting}
-          className={`w-max py-2.5 px-8 rounded my-4 ${
-            submitting 
-              ? 'bg-gray-400 text-gray-600 cursor-not-allowed' 
-              : 'bg-black text-white hover:bg-gray-800'
-          }`}
-        >
-          {submitting ? 'Adding...' : 'ADD COURSE'}
+        <button type='submit' className='bg-black text-white w-max py-2.5 px-8 rounded my-4'>
+          UPDATE COURSE
         </button>
       </form>
 
@@ -377,4 +405,4 @@ const AddCourse = () => {
   );
 };
 
-export default AddCourse;
+export default EditCourse; 
