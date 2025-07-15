@@ -195,6 +195,7 @@ export const educatorDashboardData = async (req, res) => {
     try {
         const educatorId = req.auth.userId
         const courses = await Course.find({ educator: educatorId })
+        console.log('Educator Dashboard - Found courses:', courses.length, courses.map(c => c.courseTitle));
         const totalStudents = courses.reduce((acc, course) => acc + course.enrolledStudents.length, 0)
         const totalRevenue = courses.reduce((acc, course) => {
             const courseRevenue = course.enrolledStudents.length * (course.coursePrice - course.discount * course.coursePrice / 100)
@@ -206,6 +207,7 @@ export const educatorDashboardData = async (req, res) => {
         for (const course of courses) {
             // Find purchases for this course
             const purchases = await Purchase.find({ courseId: course._id, status: 'completed' }).sort({ createdAt: -1 }).populate('userId');
+            console.log(`Course ${course.courseTitle} - Purchases found:`, purchases.length);
             for (const purchase of purchases) {
                 if (purchase.userId) {
                     enrolledStudentsData.push({
@@ -222,6 +224,7 @@ export const educatorDashboardData = async (req, res) => {
         }
         // Sort by latest
         enrolledStudentsData = enrolledStudentsData.sort((a, b) => new Date(b.purchaseData) - new Date(a.purchaseData));
+        console.log('Educator Dashboard - Enrolled students data:', enrolledStudentsData.length, enrolledStudentsData);
 
         res.json({
             success: true,
@@ -242,9 +245,11 @@ export const getEnrolledStudentsData = async (req, res) => {
     try {
         const educatorId = req.auth.userId
         const courses = await Course.find({ educator: educatorId })
+        console.log('Enrolled Students - Found courses:', courses.length, courses.map(c => c.courseTitle));
         let enrolledStudents = [];
         for (const course of courses) {
             const purchases = await Purchase.find({ courseId: course._id, status: 'completed' }).sort({ createdAt: -1 }).populate('userId');
+            console.log(`Course ${course.courseTitle} - Purchases found:`, purchases.length);
             for (const purchase of purchases) {
                 if (purchase.userId) {
                     enrolledStudents.push({
@@ -261,6 +266,7 @@ export const getEnrolledStudentsData = async (req, res) => {
         }
         // Sort by latest
         enrolledStudents = enrolledStudents.sort((a, b) => new Date(b.purchaseData) - new Date(a.purchaseData));
+        console.log('Enrolled Students - Enrolled students data:', enrolledStudents.length, enrolledStudents);
         res.json({ success: true, enrolledStudents });
     } catch (error) {
         res.json({ success: false, message: error.message })
