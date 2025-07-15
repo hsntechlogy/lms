@@ -85,7 +85,13 @@ export const getCourseId = async (req, res) => {
                 }
             })
         })
-        res.json({ success: true, courseData })
+        // Add testimonials and pinnedTestimonials to the response
+        res.json({ 
+            success: true, 
+            courseData,
+            testimonials: courseData.testimonials || [],
+            pinnedTestimonials: courseData.pinnedTestimonials || []
+        })
     } catch (error) {
         res.json({ success: false, message: error.message })
     }

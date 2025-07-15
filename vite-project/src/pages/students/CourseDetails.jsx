@@ -127,6 +127,8 @@ const CourseDetails = () => {
 
       if (data.success) {
         setCourseData(data.courseData);
+        setTestimonials(data.testimonials || []);
+        setPinnedTestimonials(data.pinnedTestimonials || []);
         // Set initial rating if user has already rated
         if (userData && data.courseData.courseRatings) {
           const userRating = data.courseData.courseRatings.find(r => r.userId === userData._id);
