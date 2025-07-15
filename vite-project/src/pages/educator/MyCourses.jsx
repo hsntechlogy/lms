@@ -1,13 +1,13 @@
 // vite-project/src/pages/educator/MyCourses.jsx
 import React, { useContext, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
 import { AppContext } from '../../context/AppContext';
 import { assets } from '../../assets/assets';
 import { toast } from 'react-toastify';
-import axios from 'axios';
 
 const MyCourses = () => {
-  const { backendUrl, getToken, allCourses, isEducator } = useContext(AppContext);
+  const { currency, backendUrl, isEducator, getToken } = useContext(AppContext);
   const [courses, setCourses] = useState([]);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();

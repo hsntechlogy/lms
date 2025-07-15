@@ -71,6 +71,13 @@ export const getCourseId = async (req, res) => {
             return res.json({ success: false, message: "Course not found" })
         }
 
+        // Update thumbnail if it's using the failing placeholder URL
+        if (courseData.courseThumbnail && courseData.courseThumbnail.includes('via.placeholder.com')) {
+            courseData.courseThumbnail = 'https://picsum.photos/400/300?random=' + courseData._id;
+            await courseData.save();
+            console.log(`Updated thumbnail for course ${courseData._id}`);
+        }
+
         courseData.courseContent.forEach(chapter => {
             chapter.chapterContent.forEach(lecture => {
                 if (!lecture.isPreviewFree) {
@@ -143,5 +150,58 @@ export const fixCoursesWithMissingEducators = async (req, res) => {
     } catch (error) {
         console.error('Error fixing courses:', error);
         res.json({ success: false, message: error.message });
+    }
+}
+
+// Function to manually update all course thumbnails
+export const updateAllCourseThumbnails = async (req, res) => {
+    try {
+        console.log('Updating all course thumbnails...');
+        
+        const allCourses = await Course.find({});
+        console.log(`Found ${allCourses.length} total courses`);
+        
+        let updatedCount = 0;
+        let skippedCount = 0;
+        
+        for (const course of allCourses) {
+            if (course.courseThumbnail && course.courseThumbnail.includes('via.placeholder.com')) {
+                course.courseThumbnail = 'https://picsum.photos/400/300?random=' + course._id;
+                await course.save();
+                updatedCount++;
+                console.log(`Updated thumbnail for course ${course._id}`);
+            } else {
+                skippedCount++;
+            }
+        }
+        
+        res.json({ 
+            success: true, 
+            message: `Updated ${updatedCount} course thumbnails, skipped ${skippedCount} courses`,
+            updatedCount,
+            skippedCount
+        });
+    } catch (error) {
+        console.error('Error updating course thumbnails:', error);
+        res.json({ success: false, message: error.message });
+    }
+}
+
+//get all courses
+export const getAllCourses = async (req, res) => {
+    try {
+        const courses = await Course.find({ isPublished: true }).populate('educator', 'name imageUrl')
+        
+        // Update any courses with failing placeholder URLs
+        for (let course of courses) {
+            if (course.courseThumbnail && course.courseThumbnail.includes('via.placeholder.com')) {
+                course.courseThumbnail = 'https://picsum.photos/400/300?random=' + course._id;
+                await course.save();
+            }
+        }
+        
+        res.json({ success: true, course: courses })
+    } catch (error) {
+        res.json({ success: false, message: error.message })
     }
 }

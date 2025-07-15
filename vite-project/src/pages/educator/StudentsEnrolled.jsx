@@ -1,10 +1,8 @@
 import React from 'react';
 import { useState, useContext } from 'react';
-import { dummyStudentEnrolled } from '../../assets/assets';
 import { useEffect } from 'react';
 import Loading from '../../components/students/Loading';
 import { AppContext } from '../../context/AppContext';
-import { data } from 'react-router-dom';
 import axios from 'axios';
 import { toast } from 'react-toastify';
 

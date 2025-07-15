@@ -41,11 +41,6 @@ export const addCourse = async (req, res) => {
             return res.json({ success: false, message: 'Thumbnail not Attached' })
         }
 
-        // Check if Cloudinary is properly configured
-        if (!process.env.CLOUDINARY_API_KEY || !process.env.CLOUDINARY_SECRET_KEY || !process.env.CLOUDINARY_NAME) {
-            return res.json({ success: false, message: 'Cloudinary configuration missing. Please check your environment variables.' })
-        }
-
         // Ensure the educator exists in the User collection
         let educatorUser = await User.findById(educatorId);
         if (!educatorUser) {
@@ -71,6 +66,11 @@ export const addCourse = async (req, res) => {
         const newCourse = await Course.create(parsedCourseData)
         
         try {
+            // Check if Cloudinary is properly configured
+            if (!process.env.CLOUDINARY_API_KEY || !process.env.CLOUDINARY_SECRET_KEY || !process.env.CLOUDINARY_NAME) {
+                throw new Error('Cloudinary not configured');
+            }
+
             const imageUpload = await cloudinary.uploader.upload(imageFile.path, {
                 folder: 'course-thumbnails',
                 resource_type: 'image',
@@ -83,8 +83,8 @@ export const addCourse = async (req, res) => {
             res.json({ success: true, message: 'course Added' })
         } catch (cloudinaryError) {
             console.error('Cloudinary upload error:', cloudinaryError);
-            // If Cloudinary fails, still save the course but with a placeholder image
-            newCourse.courseThumbnail = 'https://via.placeholder.com/400x300?text=Course+Thumbnail'
+            // If Cloudinary fails, use a more reliable placeholder image
+            newCourse.courseThumbnail = 'https://picsum.photos/400/300?random=' + Date.now()
             await newCourse.save()
             res.json({ success: true, message: 'course Added (thumbnail upload failed, using placeholder)' })
         }
@@ -120,6 +120,11 @@ export const editCourse = async (req, res) => {
         // Handle thumbnail upload if new image is provided
         if (imageFile) {
             try {
+                // Check if Cloudinary is properly configured
+                if (!process.env.CLOUDINARY_API_KEY || !process.env.CLOUDINARY_SECRET_KEY || !process.env.CLOUDINARY_NAME) {
+                    throw new Error('Cloudinary not configured');
+                }
+
                 const imageUpload = await cloudinary.uploader.upload(imageFile.path, {
                     folder: 'course-thumbnails',
                     resource_type: 'image',
@@ -131,6 +136,7 @@ export const editCourse = async (req, res) => {
             } catch (cloudinaryError) {
                 console.error('Cloudinary upload error:', cloudinaryError);
                 // Keep existing thumbnail if upload fails
+                console.log('Keeping existing thumbnail due to Cloudinary error');
             }
         }
 
@@ -145,23 +151,23 @@ export const editCourse = async (req, res) => {
 //get course by id for editing
 export const getCourseForEdit = async (req, res) => {
     try {
-        const { courseId } = req.params
-        const educatorId = req.auth.userId
+        const { courseId } = req.params;
+        const educatorId = req.auth.userId;
 
-        const course = await Course.findById(courseId)
+        const course = await Course.findById(courseId);
         if (!course) {
-            return res.json({ success: false, message: 'Course not found' })
+            return res.json({ success: false, message: 'Course not found' });
         }
 
         if (course.educator !== educatorId) {
-            return res.json({ success: false, message: 'You can only view your own courses' })
+            return res.json({ success: false, message: 'You can only view your own courses' });
         }
 
-        res.json({ success: true, course })
+        res.json({ success: true, courseData: course });
     } catch (error) {
-        res.json({ success: false, message: error.message })
+        res.json({ success: false, message: error.message });
     }
-}
+};
 
 //get educator courses
 export const getEducatorCourses = async (req, res) => {

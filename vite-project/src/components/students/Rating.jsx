@@ -7,19 +7,23 @@ const Rating = ({ initialRating, onRate }) => {
   const [hoverRating, setHoverRating] = useState(0);
 
   const handleRating = (value) => {
+    console.log('Rating clicked:', value);
     setRating(value);
     if (onRate) onRate(value);
   };
 
   const handleMouseEnter = (value) => {
+    console.log('Mouse enter:', value);
     setHoverRating(value);
   };
 
   const handleMouseLeave = () => {
+    console.log('Mouse leave');
     setHoverRating(0);
   };
 
   useEffect(() => {
+    console.log('Rating component mounted, initialRating:', initialRating);
     if (initialRating) setRating(initialRating);
   }, [initialRating]);
 

@@ -5,7 +5,6 @@ import CourseList from './pages/students/CoursesList';
 import CourseDetails from './pages/students/CourseDetails';
 import Home from './pages/students/Home';
 import MyEnrollments from './pages/students/MyEnrollments';
-import Player from './pages/students/Player';
 import Loading from './components/students/Loading';
 import { ToastContainer } from 'react-toastify';
 import Educator from './pages/educator/Educator';
@@ -18,6 +17,7 @@ import AdminDashboard from './pages/admin/AdminDashboard';
 
 import Navbar from './components/students/Navbar';
 import "quill/dist/quill.snow.css";
+
 const App = () => {
   const isEducatorRoute = useMatch('/educator/*');
   const isAdminRoute = useMatch('/admin/*');
@@ -34,7 +34,6 @@ const App = () => {
         <Route path="/course-list/:input" element={<CourseList />} />
         <Route path="/course/:id" element={<CourseDetails />} />
         <Route path="/my-enrollment" element={<MyEnrollments />} />
-        <Route path="/player/:courseId" element={<Player />} />
         <Route path="/loading/:path" element={<Loading />} />
 
         {/* Educator Routes */}

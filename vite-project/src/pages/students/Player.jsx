@@ -25,10 +25,11 @@ const Player = () => {
 
   // Function to check if text contains only English characters
   const isEnglishOnly = (text) => {
-    const englishRegex = /^[a-zA-Z0-9\s.,!?@#$%^&*()_+\-=\[\]{};':"\\|<>\/\n\r]*$/;
+    const englishRegex = /^[a-zA-Z0-9\s.,!?@#$%^&*()_+\-=[\]{};':"\\|<>/\n\r]*$/;
     return englishRegex.test(text);
   };
 
+  
   // Function to extract YouTube video ID from URL
   const extractVideoId = (url) => {
     if (!url) return '';
@@ -115,16 +116,17 @@ const Player = () => {
   };
 
   const handleRate = async (rating) => {
+    console.log('handleRate called with rating:', rating);
     try {
       const token = await getToken();
-      const url = backendUrl.endsWith('/') ? backendUrl + 'api/user/add-rating' : backendUrl + '/api/user/add-rating';
       const { data } = await axios.post(
-        url,
+        backendUrl + '/api/user/add-rating',
         { courseId, rating },
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
       if (data.success) {
+        console.log('Rating successful:', data.message);
         toast.success(data.message);
         fetchUserEnrolledCourses();
         // Update the local course data to reflect the new rating
@@ -139,9 +141,11 @@ const Player = () => {
           setCourseData(updatedCourse);
         }
       } else {
+        console.log('Rating failed:', data.message);
         toast.error(data.message);
       }
     } catch (error) {
+      console.log('Rating error:', error.message);
       toast.error(error.message);
     }
   };
@@ -321,7 +325,7 @@ const Player = () => {
                       value={testimonialComment}
                       onChange={(e) => setTestimonialComment(e.target.value)}
                       placeholder="Share your experience with this course in English only (10-500 characters)..."
-                      className="w-full p-2 border border-gray-300 rounded resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="w-full p-3 border border-gray-300 rounded resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
                       rows="4"
                       maxLength="500"
                     />
