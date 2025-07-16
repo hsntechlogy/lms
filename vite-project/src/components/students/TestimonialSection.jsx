@@ -64,17 +64,16 @@ const TestimonialsSection = () => {
   }, []);
 
   // Delete testimonial handler (for educator)
-  const handleDelete = async (testimonial, index) => {
+  const handleDelete = async (testimonial) => {
     if (!isEducator) return;
     try {
       const token = await getToken();
-      // You may need to adjust the endpoint and payload as per your backend
       await axios.post(
         `${backendUrl}/api/educator/delete-testimonial`,
         { testimonialId: testimonial._id },
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      setTestimonials(prev => prev.filter((_, i) => i !== index));
+      setTestimonials(prev => prev.filter(t => t._id !== testimonial._id));
     } catch (error) {
       console.error('Failed to delete testimonial:', error);
     }
@@ -147,7 +146,7 @@ const TestimonialsSection = () => {
                 {isEducator && (
                   <button
                     className="absolute top-2 right-2 text-xs text-red-600 border border-red-400 px-2 py-1 rounded bg-white opacity-0 group-hover:opacity-100 transition-opacity"
-                    onClick={() => handleDelete(testimonial, index)}
+                    onClick={() => handleDelete(testimonial)}
                     title="Delete Comment"
                   >
                     Delete

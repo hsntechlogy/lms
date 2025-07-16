@@ -272,3 +272,28 @@ export const getEnrolledStudentsData = async (req, res) => {
         res.json({ success: false, message: error.message })
     }
 }
+
+// Delete a testimonial (educator only)
+export const deleteTestimonial = async (req, res) => {
+  try {
+    const { testimonialId } = req.body;
+    const educatorId = req.auth.userId;
+    if (!testimonialId) {
+      return res.status(400).json({ success: false, message: 'Testimonial ID is required.' });
+    }
+    // Find the course that contains this testimonial and is owned by the educator
+    const course = await Course.findOne({
+      educator: educatorId,
+      'testimonials._id': testimonialId
+    });
+    if (!course) {
+      return res.status(404).json({ success: false, message: 'Testimonial or course not found, or you do not have permission.' });
+    }
+    // Remove the testimonial
+    course.testimonials = course.testimonials.filter(t => t._id.toString() !== testimonialId);
+    await course.save();
+    res.json({ success: true, message: 'Testimonial deleted successfully.' });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
