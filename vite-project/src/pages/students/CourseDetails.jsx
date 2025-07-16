@@ -25,6 +25,8 @@ const CourseDetails = () => {
   // Add state for pinned testimonials, view all toggle, and admin check
   const [pinnedTestimonials, setPinnedTestimonials] = useState([]);
   const [showAllTestimonials, setShowAllTestimonials] = useState(false);
+  // Helper for YouTube error fallback
+  const [youtubeError, setYoutubeError] = useState(false);
 
   const {
     CalculateRating,
@@ -437,7 +439,7 @@ const CourseDetails = () => {
             {/* Testimonials Section */}
             <div className="bg-white rounded-lg shadow p-6 mb-6">
               <h2 className="text-2xl font-semibold mb-4">Testimonials</h2>
-              {/* Add Testimonial Button/Form if eligible */}
+              {/* Always show Add Testimonial Button/Form if eligible (fix visibility) */}
               {userData && courseData && canAddTestimonial() && (
                 <div className="mb-6">
                   <button
@@ -610,18 +612,15 @@ const CourseDetails = () => {
           {/* Right/Sidebar Column */}
           <div className="w-full lg:w-[320px] flex-shrink-0">
             <div className="bg-white rounded-lg shadow-lg p-6 sticky top-8 flex flex-col gap-6">
-              {/* Thumbnail/Video */}
+              {/* Thumbnail/Video in Sidebar */}
               <div className="w-full aspect-video rounded-lg overflow-hidden mb-4">
-                {PlayerData ? (
+                {PlayerData && PlayerData.videoId && !youtubeError ? (
                   <Youtube
                     videoId={PlayerData.videoId}
                     opts={{ playerVars: { autoplay: 1 } }}
                     iframeClassName="w-full h-full object-cover"
-                    onError={() => (
-                      <div className="flex items-center justify-center h-full bg-gray-200 text-gray-600">
-                        Video unavailable
-                      </div>
-                    )}
+                    onError={() => setYoutubeError(true)}
+                    onReady={e => setYoutubeError(false)}
                   />
                 ) : (
                   <img
