@@ -491,7 +491,12 @@ const CourseDetails = () => {
                 </div>
               )}
               {/* Regular Testimonials (show 3 by default) */}
-              {testimonials && testimonials.length > 0 ? (
+              {(!testimonials || testimonials.length === 0) ? (
+                <div className="flex flex-col items-center justify-center py-8 text-gray-400">
+                  <img src={assets.star_blank} alt="No testimonials" className="w-10 h-10 mb-2 opacity-60" />
+                  <p>No testimonials yet. Be the first to share your experience!</p>
+                </div>
+              ) : (
                 <div className="space-y-4">
                   {(showAllTestimonials ? testimonials : testimonials.slice(0, 3)).map((testimonial, index) => (
                     <div key={index} className="border border-gray-300 rounded p-4 bg-gray-50">
@@ -555,11 +560,6 @@ const CourseDetails = () => {
                       Show Less
                     </button>
                   )}
-                </div>
-              ) : (
-                <div className="flex flex-col items-center justify-center py-8 text-gray-400">
-                  <img src={assets.star_blank} alt="No testimonials" className="w-10 h-10 mb-2 opacity-60" />
-                  <p>No testimonials yet. Be the first to share your experience!</p>
                 </div>
               )}
             </div>
