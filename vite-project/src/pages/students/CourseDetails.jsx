@@ -437,6 +437,35 @@ const CourseDetails = () => {
             {/* Testimonials Section */}
             <div className="bg-white rounded-lg shadow p-6 mb-6">
               <h2 className="text-2xl font-semibold mb-4">Testimonials</h2>
+              {/* Add Testimonial Button/Form if eligible */}
+              {userData && courseData && canAddTestimonial() && (
+                <div className="mb-6">
+                  <button
+                    onClick={() => setShowTestimonialForm(!showTestimonialForm)}
+                    className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition-colors"
+                  >
+                    {showTestimonialForm ? 'Cancel' : 'Add Testimonial'}
+                  </button>
+                  {showTestimonialForm && (
+                    <div className="mt-4">
+                      <textarea
+                        className="w-full border rounded p-2 mb-2"
+                        rows={3}
+                        placeholder="Share your experience..."
+                        value={testimonialComment}
+                        onChange={e => setTestimonialComment(e.target.value)}
+                      />
+                      <button
+                        onClick={handleAddTestimonial}
+                        className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
+                        disabled={!testimonialComment.trim()}
+                      >
+                        Submit Testimonial
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )}
               {/* Pinned Testimonials */}
               {pinnedTestimonials && pinnedTestimonials.length > 0 && (
                 <div className="mb-6">
