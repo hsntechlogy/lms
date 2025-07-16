@@ -28,6 +28,22 @@ const CourseDetails = () => {
   // Helper for YouTube error fallback
   const [youtubeError, setYoutubeError] = useState(false);
 
+  // Helper to extract YouTube video ID from URL
+  function extractVideoId(url) {
+    if (!url) return '';
+    const patterns = [
+      /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([^&\n?#]+)/,
+      /youtube\.com\/v\/([^&\n?#]+)/,
+      /youtube\.com\/watch\?.*&v=([^&\n?#]+)/
+    ];
+    for (const pattern of patterns) {
+      const match = url.match(pattern);
+      if (match) return match[1];
+    }
+    // If no pattern matches, try to extract the last part as video ID
+    return url.split('/').pop().split('?')[0];
+  }
+
   const {
     CalculateRating,
     calculateNoOfLectures,
@@ -383,12 +399,17 @@ const CourseDetails = () => {
                               {lecture.lectureUrl && (
                                 <p
                                   onClick={() => {
-                                    if (isAlreadyEnrolled || lecture.isPreviewFree) {
+                                    const videoId = extractVideoId(lecture.lectureUrl);
+                                    if ((isAlreadyEnrolled || lecture.isPreviewFree) && videoId) {
                                       setPlayerData({
                                         ...lecture,
+                                        videoId,
                                         chapter: index + 1,
                                         lecture: i + 1,
                                       });
+                                      setYoutubeError(false);
+                                    } else if (!videoId) {
+                                      toast.error('Invalid or missing YouTube video URL.');
                                     } else {
                                       toast.error('Enroll in the course to watch this lecture.');
                                     }
