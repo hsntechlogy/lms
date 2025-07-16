@@ -6,7 +6,11 @@ import axios from 'axios';
 const TestimonialsSection = () => {
   const [testimonials, setTestimonials] = useState([]);
   const [loading, setLoading] = useState(true);
-  const { backendUrl } = useContext(AppContext);
+  const [showAll, setShowAll] = useState(false);
+  const { backendUrl, isEducator, userData, getToken } = useContext(AppContext);
+
+  const isAdmin = userData && userData.isAdmin;
+  const canSeeAll = isEducator || isAdmin;
 
   const fetchAllTestimonials = async () => {
     try {
@@ -19,8 +23,7 @@ const TestimonialsSection = () => {
         );
 
         const sortedTestimonials = allTestimonials
-          .sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0))
-          .slice(0, 6);
+          .sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
 
         setTestimonials(sortedTestimonials);
       } else {
@@ -60,6 +63,26 @@ const TestimonialsSection = () => {
     fetchAllTestimonials();
   }, []);
 
+  // Delete testimonial handler (for educator)
+  const handleDelete = async (testimonial, index) => {
+    if (!isEducator) return;
+    try {
+      const token = await getToken();
+      // You may need to adjust the endpoint and payload as per your backend
+      await axios.post(
+        `${backendUrl}/api/educator/delete-testimonial`,
+        { testimonialId: testimonial._id },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      setTestimonials(prev => prev.filter((_, i) => i !== index));
+    } catch (error) {
+      console.error('Failed to delete testimonial:', error);
+    }
+  };
+
+  // Determine testimonials to show
+  const displayedTestimonials = canSeeAll && showAll ? testimonials : testimonials.slice(0, 3);
+
   return (
     <div className="pb-14 px-8 md:px-0">
       <h2 className="text-3xl text-center font-medium text-gray-800">Testimonials</h2>
@@ -73,56 +96,89 @@ const TestimonialsSection = () => {
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
         </div>
       ) : (
-        <div
-          className="grid gap-8 mt-14"
-          style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))' }}
-        >
-          {testimonials.map((testimonial, index) => (
-            <div
-              key={index}
-              className="text-sm text-left border border-gray-500/30 pb-6 rounded-lg bg-white shadow shadow-black/5 overflow-hidden"
-            >
-              <div className="flex items-center gap-4 px-5 border-b border-gray-500/10 py-4 bg-gray-500/20">
-                <img
-                  className="h-12 w-12 rounded-full"
-                  src={testimonial.userImage || testimonial.image || assets.profile_img_1}
-                  alt={testimonial.userName || testimonial.name || 'Student'}
-                  onError={(e) => (e.target.src = assets.profile_img_1)}
-                />
-                <div>
-                  <h1 className="text-lg font-medium text-gray-800">
-                    {testimonial.userName || testimonial.name || 'Anonymous'}
-                  </h1>
-                  <p className="text-gray-800/80">{testimonial.role || 'Student'}</p>
+        <>
+          <div
+            className="grid gap-8 mt-14"
+            style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))' }}
+          >
+            {displayedTestimonials.map((testimonial, index) => (
+              <div
+                key={index}
+                className="relative text-sm text-left border border-gray-500/30 pb-6 rounded-lg bg-white shadow shadow-black/5 overflow-hidden group"
+              >
+                <div className="flex items-center gap-4 px-5 border-b border-gray-500/10 py-4 bg-gray-500/20">
+                  <img
+                    className="h-12 w-12 rounded-full"
+                    src={testimonial.userImage || testimonial.image || assets.profile_img_1}
+                    alt={testimonial.userName || testimonial.name || 'Student'}
+                    onError={(e) => (e.target.src = assets.profile_img_1)}
+                  />
+                  <div>
+                    <h1 className="text-lg font-medium text-gray-800">
+                      {testimonial.userName || testimonial.name || 'Anonymous'}
+                    </h1>
+                    <p className="text-gray-800/80">{testimonial.role || 'Student'}</p>
+                  </div>
                 </div>
-              </div>
-              <div className="p-5 pb-7">
-                <div className="flex gap-0.5">
-                  {[...Array(5)].map((_, i) => (
-                    <img
-                      key={i}
-                      className="h-5"
-                      src={
-                        i < Math.floor(testimonial.rating || 0)
-                          ? assets.star
-                          : assets.star_blank
-                      }
-                      alt=""
-                    />
-                  ))}
+                <div className="p-5 pb-7">
+                  <div className="flex gap-0.5">
+                    {[...Array(5)].map((_, i) => (
+                      <img
+                        key={i}
+                        className="h-5"
+                        src={
+                          i < Math.floor(testimonial.rating || 0)
+                            ? assets.star
+                            : assets.star_blank
+                        }
+                        alt=""
+                      />
+                    ))}
+                  </div>
+                  <p className="text-gray-500 mt-5">
+                    {testimonial.comment || testimonial.feedback}
+                  </p>
                 </div>
-                <p className="text-gray-500 mt-5">
-                  {testimonial.comment || testimonial.feedback}
-                </p>
+                {testimonial.createdAt && (
+                  <p className="text-xs text-gray-400 px-5 pb-2">
+                    {new Date(testimonial.createdAt).toLocaleDateString()}
+                  </p>
+                )}
+                {/* Delete button for educator on hover */}
+                {isEducator && (
+                  <button
+                    className="absolute top-2 right-2 text-xs text-red-600 border border-red-400 px-2 py-1 rounded bg-white opacity-0 group-hover:opacity-100 transition-opacity"
+                    onClick={() => handleDelete(testimonial, index)}
+                    title="Delete Comment"
+                  >
+                    Delete
+                  </button>
+                )}
               </div>
-              {testimonial.createdAt && (
-                <p className="text-xs text-gray-400 px-5 pb-2">
-                  {new Date(testimonial.createdAt).toLocaleDateString()}
-                </p>
-              )}
+            ))}
+          </div>
+          {/* See All Comments button for educator and admin */}
+          {canSeeAll && testimonials.length > 3 && !showAll && (
+            <div className="flex justify-center mt-6">
+              <button
+                className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300 text-blue-700"
+                onClick={() => setShowAll(true)}
+              >
+                See All Comments
+              </button>
             </div>
-          ))}
-        </div>
+          )}
+          {canSeeAll && showAll && testimonials.length > 3 && (
+            <div className="flex justify-center mt-6">
+              <button
+                className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300 text-blue-700"
+                onClick={() => setShowAll(false)}
+              >
+                Show Less
+              </button>
+            </div>
+          )}
+        </>
       )}
     </div>
   );
