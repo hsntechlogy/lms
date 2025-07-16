@@ -296,65 +296,71 @@ const CourseDetails = () => {
 
   if (!courseData) return <Loading />;
 
-  // Example: What you'll learn and requirements (if available)
   const whatYouWillLearn = courseData.whatYouWillLearn || [];
   const requirements = courseData.requirements || [];
-  // FAQ (if available)
   const faqs = courseData.faqs || [];
 
   return (
     <>
-      <div className="max-w-4xl mx-auto p-4 sm:p-8 flex flex-col gap-8">
-        {/* Top Block: Thumbnail/Video, Title, Educator, Rating, Price, Enroll */}
-        <div className="bg-white rounded-lg shadow p-6 flex flex-col md:flex-row gap-8 items-start">
-          <div className="w-full md:w-1/3 flex-shrink-0">
-            {PlayerData ? (
-              <Youtube
-                videoId={PlayerData.videoId}
-                opts={{ playerVars: { autoplay: 1 } }}
-                iframeClassName="w-full aspect-video rounded-lg"
-              />
-            ) : (
-              <img
-                src={courseData.courseThumbnail || assets.course_1}
-                alt="Course thumbnail"
-                className="w-full rounded-lg object-cover aspect-video"
-                onError={e => { e.target.src = assets.course_1; }}
-              />
+      {/* Top: Full-width thumbnail/video */}
+      <div className="w-full bg-black flex justify-center items-center aspect-video max-h-[420px] overflow-hidden">
+        {PlayerData ? (
+          <Youtube
+            videoId={PlayerData.videoId}
+            opts={{ playerVars: { autoplay: 1 } }}
+            iframeClassName="w-full h-full object-cover"
+          />
+        ) : (
+          <img
+            src={courseData.courseThumbnail || assets.course_1}
+            alt="Course thumbnail"
+            className="w-full h-full object-cover"
+            style={{ maxHeight: 420 }}
+            onError={e => { e.target.src = assets.course_1; }}
+          />
+        )}
+      </div>
+
+      {/* Price/Enroll Card */}
+      <div className="max-w-2xl mx-auto -mt-16 z-10 relative">
+        <div className="bg-white rounded-lg shadow-lg p-6 flex flex-col items-center gap-4 border border-gray-200">
+          <div className="flex items-center gap-4 text-2xl font-bold">
+            <span className="text-blue-600">
+              {currency} {(courseData.coursePrice - courseData.discount * courseData.coursePrice / 100).toFixed(2)}
+            </span>
+            {courseData.discount > 0 && (
+              <span className="text-gray-500 line-through text-lg">
+                {currency} {courseData.coursePrice}
+              </span>
             )}
           </div>
-          <div className="flex-1 flex flex-col gap-4">
-            <h1 className="text-3xl font-bold text-gray-800">{courseData.courseTitle}</h1>
-            <p className="text-gray-600 text-lg">By {courseData.educator?.name || 'Unknown Educator'}</p>
-            <div className="flex items-center gap-2">
-              <div className="flex items-center gap-1">
-                {[...Array(5)].map((_, i) => (
-                  <img
-                    key={i}
-                    src={i < Math.floor(CalculateRating(courseData)) ? assets.star : assets.star_blank}
-                    alt=""
-                    className="w-5 h-5"
-                  />
-                ))}
-              </div>
-              <span className="text-gray-500">({courseData.courseRatings?.length || 0} ratings)</span>
+          <button
+            onClick={enrollCourse}
+            className="bg-blue-600 text-white px-8 py-3 rounded-lg text-lg font-semibold hover:bg-blue-700 transition-colors w-full"
+          >
+            {isAlreadyEnrolled ? 'Already Enrolled' : 'Enroll Now'}
+          </button>
+          <div className="text-gray-600 text-base mt-2">Course by <span className="font-semibold">{courseData.educator?.name || 'Unknown Educator'}</span></div>
+        </div>
+      </div>
+
+      {/* Main Content */}
+      <div className="max-w-4xl mx-auto p-4 sm:p-8 flex flex-col gap-8 mt-8">
+        {/* Title & Rating */}
+        <div className="flex flex-col gap-2">
+          <h1 className="text-3xl font-bold text-gray-800">{courseData.courseTitle}</h1>
+          <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1">
+              {[...Array(5)].map((_, i) => (
+                <img
+                  key={i}
+                  src={i < Math.floor(CalculateRating(courseData)) ? assets.star : assets.star_blank}
+                  alt=""
+                  className="w-5 h-5"
+                />
+              ))}
             </div>
-            <div className="flex items-center gap-4 text-lg font-semibold">
-              <span className="text-blue-600 text-2xl">
-                {currency} {(courseData.coursePrice - courseData.discount * courseData.coursePrice / 100).toFixed(2)}
-              </span>
-              {courseData.discount > 0 && (
-                <span className="text-gray-500 line-through">
-                  {currency} {courseData.coursePrice}
-                </span>
-              )}
-            </div>
-            <button
-              onClick={enrollCourse}
-              className="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700 transition-colors w-fit mt-2"
-            >
-              {isAlreadyEnrolled ? 'Already Enrolled' : 'Enroll Now'}
-            </button>
+            <span className="text-gray-500">({courseData.courseRatings?.length || 0} ratings)</span>
           </div>
         </div>
 
@@ -388,7 +394,7 @@ const CourseDetails = () => {
           </div>
         )}
 
-        {/* Course Content */}
+        {/* Course Content (Accordion) */}
         <div className="bg-white rounded-lg shadow p-6">
           <h2 className="text-2xl font-semibold mb-4">Course Content</h2>
           {courseData && courseData.courseContent.map((chapter, index) => (
