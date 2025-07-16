@@ -311,6 +311,11 @@ const CourseDetails = () => {
   const totalLectures = courseData.courseContent?.reduce((acc, chapter) => acc + chapter.chapterContent.length, 0) || 0;
   const courseDuration = calculateCourseDuration(courseData);
 
+  // Helper for lesson/minute labels
+  const lessonLabel = totalLectures === 1 ? '1 lesson' : `${totalLectures} lessons`;
+  const durationLabel = courseDuration.replace('hours', 'h').replace('hour', 'h').replace('minutes', 'min').replace('minute', 'min');
+  const ratingLabel = `${courseData.courseRatings?.length || 0} ratings`;
+
   return (
     <>
       <div className="w-full bg-gray-50 min-h-screen py-6">
@@ -388,7 +393,7 @@ const CourseDetails = () => {
                                   }}
                                   className={`text-blue-500 cursor-pointer hover:text-blue-700 ${!isAlreadyEnrolled && !lecture.isPreviewFree ? 'opacity-50 pointer-events-none' : ''}`}
                                 >
-                                  {lecture.isPreviewFree ? 'Preview' : 'Watch'}
+                                  {isAlreadyEnrolled ? 'Watch' : (lecture.isPreviewFree ? 'Preview' : 'Watch')}
                                 </p>
                               )}
                               {isAlreadyEnrolled && (
@@ -582,6 +587,11 @@ const CourseDetails = () => {
                     videoId={PlayerData.videoId}
                     opts={{ playerVars: { autoplay: 1 } }}
                     iframeClassName="w-full h-full object-cover"
+                    onError={() => (
+                      <div className="flex items-center justify-center h-full bg-gray-200 text-gray-600">
+                        Video unavailable
+                      </div>
+                    )}
                   />
                 ) : (
                   <img
@@ -624,9 +634,9 @@ const CourseDetails = () => {
                     />
                   ))}
                 </div>
-                <span className="text-gray-500 text-sm">{courseData.courseRatings?.length || 0} ratings</span>
-                <span className="text-gray-500 text-sm">{totalLectures} lessons</span>
-                <span className="text-gray-500 text-sm">{courseDuration}</span>
+                <span className="text-gray-500 text-sm">{ratingLabel}</span>
+                <span className="text-gray-500 text-sm">{lessonLabel}</span>
+                <span className="text-gray-500 text-sm">{durationLabel}</span>
               </div>
               {/* What's in course */}
               {whatYouWillLearn.length > 0 && (
