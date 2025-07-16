@@ -16,9 +16,9 @@ const app = express();
 await connectDB();
 await connectCloudinary();
 
-// CORS configuration
+// allowedOrigins is constructed from environment variable or defaults for local/dev/prod frontends
 const allowedOrigins = process.env.ALLOWED_ORIGINS ? 
-  process.env.ALLOWED_ORIGINS.split(',') : 
+  process.env.ALLOWED_ORIGINS.split(',').map(o => o.trim()) : 
   [
     process.env.FRONTEND_URL,
     'https://lms-frontend-git-main-hsntechlogys-projects.vercel.app',
@@ -29,6 +29,7 @@ const allowedOrigins = process.env.ALLOWED_ORIGINS ?
     process.env.VERCEL_URL
   ].filter(Boolean);
 
+// CORS middleware: only allow requests from allowedOrigins, block others
 const corsOptions = {
   origin: (origin, callback) => {
     if (!origin || allowedOrigins.includes(origin)) {
@@ -55,13 +56,15 @@ const corsOptions = {
 app.use(cors(corsOptions));
 app.options('*', cors(corsOptions));
 
-// Additional CORS headers for all responses
+// Additional CORS headers middleware: sets headers for allowed origins on every response
 app.use((req, res, next) => {
-  res.header('Access-Control-Allow-Origin', req.headers.origin);
+  const origin = req.headers.origin;
+  if (origin && allowedOrigins.includes(origin)) {
+    res.header('Access-Control-Allow-Origin', origin);
+  }
   res.header('Access-Control-Allow-Credentials', true);
   res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS, PATCH');
   res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization, X-CSRF-Token, X-API-Key');
-  
   if (req.method === 'OPTIONS') {
     res.sendStatus(200);
   } else {
