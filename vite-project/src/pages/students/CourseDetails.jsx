@@ -557,9 +557,10 @@ const CourseDetails = () => {
                   )}
                 </div>
               ) : (
-                <p className="text-gray-500 text-center py-8">
-                  No testimonials yet. Be the first to share your experience after rating this course 5 stars!
-                </p>
+                <div className="flex flex-col items-center justify-center py-8 text-gray-400">
+                  <img src={assets.star_blank} alt="No testimonials" className="w-10 h-10 mb-2 opacity-60" />
+                  <p>No testimonials yet. Be the first to share your experience!</p>
+                </div>
               )}
             </div>
             {/* FAQ Section */}
@@ -624,17 +625,10 @@ const CourseDetails = () => {
               </div>
               {/* Rating, Timing, Lessons */}
               <div className="flex flex-row gap-4 items-center justify-center mt-4">
-                <div className="flex items-center gap-1">
-                  {[...Array(5)].map((_, i) => (
-                    <img
-                      key={i}
-                      src={i < Math.floor(CalculateRating(courseData)) ? assets.star : assets.star_blank}
-                      alt=""
-                      className="w-5 h-5"
-                    />
-                  ))}
-                </div>
-                <span className="text-gray-500 text-sm">{ratingLabel}</span>
+                <span className="flex items-center gap-1 text-gray-500 text-sm">
+                  <img src={assets.star} alt="star" className="w-5 h-5" />
+                  {ratingLabel}
+                </span>
                 <span className="text-gray-500 text-sm">{lessonLabel}</span>
                 <span className="text-gray-500 text-sm">{durationLabel}</span>
               </div>
