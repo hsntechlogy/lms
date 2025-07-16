@@ -98,8 +98,7 @@ const TestimonialsSection = () => {
       ) : (
         <>
           <div
-            className="grid gap-8 mt-14"
-            style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))' }}
+            className="grid gap-8 mt-14 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3"
           >
             {displayedTestimonials.map((testimonial, index) => (
               <div
