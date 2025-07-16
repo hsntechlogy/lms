@@ -280,6 +280,15 @@ const CourseDetails = () => {
     }
   };
 
+  // Accordion toggle: only one open at a time
+  const toggleSection = (index) => {
+    setOpensections((prev) => {
+      const newSections = {};
+      if (!prev[index]) newSections[index] = true;
+      return newSections;
+    });
+  };
+
   useEffect(() => {
     if (id) {
       fetchCourseData();
@@ -307,7 +316,7 @@ const CourseDetails = () => {
       <div className="w-full bg-gray-50 min-h-screen py-6">
         <div className="max-w-7xl mx-auto flex flex-col lg:flex-row gap-8 px-4">
           {/* Left/Main Column */}
-          <div className="flex-1 min-w-0">
+          <div className="flex-1 min-w-0 max-w-3xl">
             {/* Title */}
             <h1 className="text-3xl font-bold text-gray-800 mb-2">{courseData.courseTitle}</h1>
             {/* Rating */}
@@ -564,7 +573,7 @@ const CourseDetails = () => {
             )}
           </div>
           {/* Right/Sidebar Column */}
-          <div className="w-full lg:w-[400px] flex-shrink-0">
+          <div className="w-full lg:w-[320px] flex-shrink-0">
             <div className="bg-white rounded-lg shadow-lg p-6 sticky top-8 flex flex-col gap-6">
               {/* Thumbnail/Video */}
               <div className="w-full aspect-video rounded-lg overflow-hidden mb-4">
@@ -604,7 +613,7 @@ const CourseDetails = () => {
                 <div className="text-gray-600 text-base mt-2">Course by <span className="font-semibold">{courseData.educator?.name || 'Unknown Educator'}</span></div>
               </div>
               {/* Rating, Timing, Lessons */}
-              <div className="flex flex-col gap-2 items-center mt-4">
+              <div className="flex flex-row gap-4 items-center justify-center mt-4">
                 <div className="flex items-center gap-1">
                   {[...Array(5)].map((_, i) => (
                     <img
@@ -615,9 +624,9 @@ const CourseDetails = () => {
                     />
                   ))}
                 </div>
-                <span className="text-gray-500">{courseData.courseRatings?.length || 0} ratings</span>
-                <span className="text-gray-500">{totalLectures} lessons</span>
-                <span className="text-gray-500">{courseDuration}</span>
+                <span className="text-gray-500 text-sm">{courseData.courseRatings?.length || 0} ratings</span>
+                <span className="text-gray-500 text-sm">{totalLectures} lessons</span>
+                <span className="text-gray-500 text-sm">{courseDuration}</span>
               </div>
               {/* What's in course */}
               {whatYouWillLearn.length > 0 && (
