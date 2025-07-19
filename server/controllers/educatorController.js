@@ -5,6 +5,7 @@ import Course from '../models/course.js';
 import { Purchase } from '../models/Purchase.js';
 import User from '../models/Users.js'
 import connectCloudinary from '../configs/cloudinary.js'
+import { createNewCourseNotification } from './notificationController.js';
 
 // Initialize Cloudinary
 connectCloudinary();
@@ -72,9 +73,18 @@ export const addCourse = async (req, res) => {
         const parsedCourseData = await JSON.parse(courseData)
         parsedCourseData.educator = educatorId
         parsedCourseData.isPublished = true // Set to true by default
-        
         const newCourse = await Course.create(parsedCourseData)
-        
+
+        // --- Notification Trigger and Logging ---
+        try {
+            console.log('Triggering new course notification for course:', newCourse._id);
+            await createNewCourseNotification(newCourse._id);
+            console.log('Notification creation complete for course:', newCourse._id);
+        } catch (notifErr) {
+            console.error('Error creating notification for new course:', notifErr);
+        }
+        // --- End Notification Trigger ---
+
         try {
             // Check if Cloudinary is properly configured
             if (!process.env.CLOUDINARY_API_KEY || !process.env.CLOUDINARY_SECRET_KEY || !process.env.CLOUDINARY_NAME) {
