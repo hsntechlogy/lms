@@ -30,15 +30,9 @@ const allowedOrigins = process.env.ALLOWED_ORIGINS ?
     process.env.VERCEL_URL
   ].filter(Boolean);
 
-// CORS middleware: only allow requests from allowedOrigins, block others
+// CORS middleware: allow all origins for debugging
 const corsOptions = {
-  origin: (origin, callback) => {
-    if (!origin || allowedOrigins.includes(origin)) {
-      return callback(null, true);
-    }
-    console.error(`Blocked by CORS: ${origin}`);
-    callback(new Error('Not allowed by CORS'));
-  },
+  origin: '*',
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
   allowedHeaders: [
@@ -57,12 +51,9 @@ const corsOptions = {
 app.use(cors(corsOptions));
 app.options('*', cors(corsOptions));
 
-// Additional CORS headers middleware: sets headers for allowed origins on every response
+// Additional CORS headers middleware: sets headers for all origins
 app.use((req, res, next) => {
-  const origin = req.headers.origin;
-  if (origin && allowedOrigins.includes(origin)) {
-    res.header('Access-Control-Allow-Origin', origin);
-  }
+  res.header('Access-Control-Allow-Origin', '*');
   res.header('Access-Control-Allow-Credentials', true);
   res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS, PATCH');
   res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization, X-CSRF-Token, X-API-Key');
