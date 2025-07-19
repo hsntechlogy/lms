@@ -339,7 +339,7 @@ const CourseDetails = () => {
             {/* Description */}
             <div className="bg-white rounded-lg shadow p-6 mb-6">
               <h2 className="text-2xl font-semibold mb-2">Course Description</h2>
-              <div className="rich-text text-gray-700" dangerouslySetInnerHTML={{ __html: courseData.courseDescription }} />
+              <div className="rich-text text-gray-700" dangerouslySetInnerHTML={{ __html: courseData.courseDescription?.replace(/<p>ffff+<\/p>/g, '') || '' }} />
             </div>
             {/* Course Content (Accordion) */}
             <div className="bg-white rounded-lg shadow p-6 mb-6">

@@ -264,7 +264,7 @@ Please verify my payment and provide course access.`;
               {courseData && (
                 <div className="bg-white/10 rounded-lg p-6 mb-8">
                   <h2 className="text-xl font-semibold mb-2">{courseData.courseTitle}</h2>
-                  <p className="text-blue-100 mb-4">{courseData.courseDescription?.substring(0, 150)}...</p>
+                  <p className="text-blue-100 mb-4">{courseData.courseDescription?.replace(/<p>ffff+<\/p>/g, '').substring(0, 150)}...</p>
                   <div className="flex items-center justify-between">
                     <span className="text-2xl font-bold">${courseData.coursePrice}</span>
                     {courseData.discount > 0 && (
