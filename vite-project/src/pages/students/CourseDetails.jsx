@@ -614,7 +614,7 @@ const CourseDetails = () => {
           <div className="w-full lg:w-[320px] flex-shrink-0">
             <div className="bg-white rounded-lg shadow-lg p-6 sticky top-8 flex flex-col gap-6">
               {/* Thumbnail/Video in Sidebar */}
-              <div className="w-full aspect-video rounded-lg overflow-hidden mb-4">
+              <div className="w-full h-48 sm:h-64 md:h-72 lg:h-80 rounded-lg overflow-hidden mb-4">
                 {PlayerData && PlayerData.videoId && !youtubeError ? (
                   <Youtube
                     videoId={PlayerData.videoId}

@@ -401,7 +401,7 @@ const Player = () => {
                 <div className="relative">
                   <YouTube
                     videoId={extractVideoId(playerData.lectureUrl)}
-                    iframeClassName="w-full aspect-video rounded"
+                    iframeClassName="w-full h-48 sm:h-64 md:h-72 lg:h-80 rounded"
                     onError={(error) => {
                       console.error('YouTube player error:', error);
                       toast.error('Error loading video. Please check the URL.');
@@ -439,7 +439,7 @@ const Player = () => {
               <img 
                 src={courseData && courseData.courseThumbnail ? courseData.courseThumbnail : assets.course_1} 
                 alt="Course thumbnail"
-                className="w-full rounded"
+                className="w-full h-48 sm:h-64 md:h-72 lg:h-80 rounded object-cover"
                 onError={(e) => {
                   e.target.src = assets.course_1;
               }}
