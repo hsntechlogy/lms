@@ -31,3 +31,16 @@ export const protectAdmin = async (req, res, next) => {
     res.json({ success: false, message: error.message });
   }
 };
+
+// middleware to protect user routes (just checks if user is authenticated)
+export const protectUser = async (req, res, next) => {
+  try {
+    const userId = req.auth.userId;
+    if (!userId) {
+      return res.status(401).json({ success: false, message: 'User authentication required' });
+    }
+    next();
+  } catch (error) {
+    res.status(401).json({ success: false, message: 'User authentication required' });
+  }
+};
