@@ -154,12 +154,13 @@ export const deleteNotification = async (req, res) => {
 // Create notification (for internal use)
 export const createNotification = async (userId, notificationData) => {
   try {
+    console.log('Saving notification for user:', userId, notificationData);
     const notification = new Notification({
       userId,
       ...notificationData
     });
-    
     await notification.save();
+    console.log('Notification saved for user:', userId);
     return notification;
   } catch (error) {
     console.error('Error creating notification:', error);
@@ -288,6 +289,7 @@ export const createPaymentSuccessNotification = async (userId, courseId) => {
 // Create notification for new course
 export const createNewCourseNotification = async (courseId) => {
   try {
+    console.log('createNewCourseNotification called for course:', courseId);
     const course = await Course.findById(courseId);
     
     if (!course) {
@@ -296,18 +298,21 @@ export const createNewCourseNotification = async (courseId) => {
 
     // Get all users who might be interested in new courses
     const users = await User.find({});
+    console.log('Notifying users:', users.map(u => u._id));
     
-    const notificationPromises = users.map(user => 
-      createNotification(user._id.toString(), {
+    const notificationPromises = users.map(user => {
+      console.log('Creating notification for user:', user._id);
+      return createNotification(user._id.toString(), {
         type: 'new_course',
         title: 'New Course Available',
         message: `New course "${course.courseTitle}" is now available for enrollment`,
         courseId: course._id,
         courseTitle: course.courseTitle
-      })
-    );
+      });
+    });
 
     await Promise.all(notificationPromises);
+    console.log('All notifications created for new course:', courseId);
   } catch (error) {
     console.error('Error creating new course notification:', error);
   }
