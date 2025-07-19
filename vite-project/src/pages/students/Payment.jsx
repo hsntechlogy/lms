@@ -24,25 +24,42 @@ const Payment = () => {
   const [showAccountNumber, setShowAccountNumber] = useState(false);
   const [selectedBankInfo, setSelectedBankInfo] = useState(null);
 
-  // Bank account information
-  const bankAccounts = {
+  // Payment options
+  const paymentOptions = {
     hbl: {
       name: 'HBL Bank',
       accountNumber: '1234-5678-9012-3456',
       accountTitle: 'Tech Learning Platform',
-      icon: '🏦'
+      icon: '🏦',
+      type: 'bank'
     },
     ubl: {
       name: 'UBL Bank',
       accountNumber: '9876-5432-1098-7654',
       accountTitle: 'Tech Learning Platform',
-      icon: '🏦'
+      icon: '🏦',
+      type: 'bank'
     },
     mcb: {
       name: 'MCB Bank',
       accountNumber: '5678-9012-3456-7890',
       accountTitle: 'Tech Learning Platform',
-      icon: '🏦'
+      icon: '🏦',
+      type: 'bank'
+    },
+    jazz: {
+      name: 'Jazz Cash',
+      accountNumber: '0323 0407917',
+      accountTitle: 'Tech Learning Platform',
+      icon: '📱',
+      type: 'mobile'
+    },
+    easypaisa: {
+      name: 'Easy Paisa',
+      accountNumber: '0317 7924417',
+      accountTitle: 'Tech Learning Platform',
+      icon: '📱',
+      type: 'mobile'
     }
   };
 
@@ -114,10 +131,15 @@ const Payment = () => {
     }
   ];
 
-  const handleBankSelect = (bankKey) => {
-    setFormData(prev => ({ ...prev, selectedBank: bankKey }));
-    setSelectedBankInfo(bankAccounts[bankKey]);
+  const handlePaymentSelect = (paymentKey) => {
+    setFormData(prev => ({ ...prev, selectedBank: paymentKey }));
+    setSelectedBankInfo(paymentOptions[paymentKey]);
     setShowAccountNumber(true);
+  };
+
+  const copyToClipboard = (text) => {
+    navigator.clipboard.writeText(text);
+    toast.success('Account number copied to clipboard!');
   };
 
   const handleWhatsAppClick = () => {
@@ -132,7 +154,23 @@ Amount: ${courseData?.coursePrice || 0}
 
 Please verify my payment and provide course access.`;
 
-    const whatsappUrl = `https://wa.me/+923001234567?text=${encodeURIComponent(message)}`;
+    const whatsappUrl = `https://wa.me/+923230407917?text=${encodeURIComponent(message)}`;
+    window.open(whatsappUrl, '_blank');
+  };
+
+  const handleWhatsAppClick2 = () => {
+    const message = `Hi! I've made a payment for the course. Here are my details:
+    
+Course: ${courseData?.courseTitle || 'Tech Course'}
+Email: ${formData.email}
+Phone: ${formData.phoneNumber}
+Location: ${formData.location}
+Payment Method: ${selectedBankInfo?.name}
+Amount: ${courseData?.coursePrice || 0}
+
+Please verify my payment and provide course access.`;
+
+    const whatsappUrl = `https://wa.me/+923177924417?text=${encodeURIComponent(message)}`;
     window.open(whatsappUrl, '_blank');
   };
 
@@ -209,8 +247,6 @@ Please verify my payment and provide course access.`;
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <Navbar />
-      
       <div className="max-w-7xl mx-auto px-4 py-8">
         <div className="bg-white rounded-lg shadow-lg overflow-hidden">
           <div className="grid grid-cols-1 lg:grid-cols-2 min-h-[600px]">
@@ -296,25 +332,25 @@ Please verify my payment and provide course access.`;
                   />
                 </div>
 
-                {/* Bank Selection */}
+                {/* Payment Method Selection */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-3">
-                    Select Bank *
+                    Select Payment Method *
                   </label>
-                  <div className="grid grid-cols-3 gap-4">
-                    {Object.entries(bankAccounts).map(([key, bank]) => (
+                  <div className="grid grid-cols-2 gap-4">
+                    {Object.entries(paymentOptions).map(([key, payment]) => (
                       <button
                         key={key}
                         type="button"
-                        onClick={() => handleBankSelect(key)}
+                        onClick={() => handlePaymentSelect(key)}
                         className={`p-4 border-2 rounded-lg text-center transition-all ${
                           formData.selectedBank === key
                             ? 'border-blue-500 bg-blue-50'
                             : 'border-gray-300 hover:border-gray-400'
                         }`}
                       >
-                        <div className="text-2xl mb-2">{bank.icon}</div>
-                        <div className="text-sm font-medium">{bank.name}</div>
+                        <div className="text-2xl mb-2">{payment.icon}</div>
+                        <div className="text-sm font-medium">{payment.name}</div>
                       </button>
                     ))}
                   </div>
@@ -323,10 +359,18 @@ Please verify my payment and provide course access.`;
                 {/* Account Number Display */}
                 {showAccountNumber && selectedBankInfo && (
                   <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-                    <h4 className="font-semibold text-green-800 mb-2">Account Details</h4>
+                    <h4 className="font-semibold text-green-800 mb-2">Payment Details</h4>
                     <div className="space-y-2 text-sm">
-                      <div><span className="font-medium">Bank:</span> {selectedBankInfo.name}</div>
-                      <div><span className="font-medium">Account Number:</span> {selectedBankInfo.accountNumber}</div>
+                      <div><span className="font-medium">{selectedBankInfo.type === 'bank' ? 'Bank' : 'Service'}:</span> {selectedBankInfo.name}</div>
+                      <div className="flex items-center justify-between">
+                        <span><span className="font-medium">{selectedBankInfo.type === 'bank' ? 'Account Number' : 'Number'}:</span> {selectedBankInfo.accountNumber}</span>
+                        <button
+                          onClick={() => copyToClipboard(selectedBankInfo.accountNumber)}
+                          className="text-blue-600 hover:text-blue-800 text-xs font-medium"
+                        >
+                          📋 Copy
+                        </button>
+                      </div>
                       <div><span className="font-medium">Account Title:</span> {selectedBankInfo.accountTitle}</div>
                     </div>
                   </div>
@@ -338,14 +382,24 @@ Please verify my payment and provide course access.`;
                   <p className="text-blue-700 text-sm mb-3">
                     After making the payment, click the WhatsApp button below to share your payment screenshot for verification.
                   </p>
-                  <button
-                    type="button"
-                    onClick={handleWhatsAppClick}
-                    className="bg-green-500 text-white px-6 py-3 rounded-lg hover:bg-green-600 transition-colors flex items-center space-x-2"
-                  >
-                    <span>📱</span>
-                    <span>Share Payment Screenshot via WhatsApp</span>
-                  </button>
+                  <div className="flex flex-col gap-2">
+                    <button
+                      type="button"
+                      onClick={handleWhatsAppClick}
+                      className="bg-green-500 text-white px-6 py-3 rounded-lg hover:bg-green-600 transition-colors flex items-center justify-center space-x-2"
+                    >
+                      <span>📱</span>
+                      <span>Share via WhatsApp (0323 0407917)</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleWhatsAppClick2}
+                      className="bg-blue-500 text-white px-6 py-3 rounded-lg hover:bg-blue-600 transition-colors flex items-center justify-center space-x-2"
+                    >
+                      <span>📱</span>
+                      <span>Share via WhatsApp (0317 7924417)</span>
+                    </button>
+                  </div>
                 </div>
 
                 {/* Screenshot Upload */}
