@@ -7,6 +7,10 @@ import Home from './pages/students/Home';
 import MyEnrollments from './pages/students/MyEnrollments';
 import Payment from './pages/students/Payment';
 import Loading from './components/students/Loading';
+import LiveClasses from './pages/students/LiveClasses';
+import PrivacyPolicy from './pages/students/PrivacyPolicy';
+import Courses from './pages/students/Courses';
+import Notifications from './pages/students/Notifications';
 import { ToastContainer } from 'react-toastify';
 import Educator from './pages/educator/Educator';
 import AddCourse from './pages/educator/AddCourse';
@@ -33,9 +37,13 @@ const App = () => {
         <Route path="/" element={<Home />} />
         <Route path="/course-list" element={<CourseList />} />
         <Route path="/course-list/:input" element={<CourseList />} />
+        <Route path="/courses" element={<Courses />} />
         <Route path="/course/:id" element={<CourseDetails />} />
         <Route path="/payment/:id" element={<Payment />} />
         <Route path="/my-enrollment" element={<MyEnrollments />} />
+        <Route path="/live-classes" element={<LiveClasses />} />
+        <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+        <Route path="/notifications" element={<Notifications />} />
         <Route path="/loading/:path" element={<Loading />} />
 
         {/* Educator Routes */}
