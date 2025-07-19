@@ -5,7 +5,7 @@ import User from '../models/Users.js';
 // Get user notifications
 export const getUserNotifications = async (req, res) => {
   try {
-    const { userId } = req.user;
+    const userId = req.auth.userId;
     const { page = 1, limit = 20, type, isRead } = req.query;
 
     const query = { userId };
@@ -45,7 +45,7 @@ export const getUserNotifications = async (req, res) => {
 // Get unread count
 export const getUnreadCount = async (req, res) => {
   try {
-    const { userId } = req.user;
+    const userId = req.auth.userId;
     
     const count = await Notification.countDocuments({
       userId,
@@ -68,7 +68,7 @@ export const getUnreadCount = async (req, res) => {
 // Mark notification as read
 export const markAsRead = async (req, res) => {
   try {
-    const { userId } = req.user;
+    const userId = req.auth.userId;
     const { notificationId } = req.params;
 
     const notification = await Notification.findOneAndUpdate(
@@ -100,7 +100,7 @@ export const markAsRead = async (req, res) => {
 // Mark all notifications as read
 export const markAllAsRead = async (req, res) => {
   try {
-    const { userId } = req.user;
+    const userId = req.auth.userId;
 
     await Notification.updateMany(
       { userId, isRead: false },
@@ -123,7 +123,7 @@ export const markAllAsRead = async (req, res) => {
 // Delete notification
 export const deleteNotification = async (req, res) => {
   try {
-    const { userId } = req.user;
+    const userId = req.auth.userId;
     const { notificationId } = req.params;
 
     const notification = await Notification.findOneAndDelete({
