@@ -21,8 +21,7 @@ export const getUserNotifications = async (req, res) => {
     const notifications = await Notification.find(query)
       .sort({ createdAt: -1 })
       .limit(limit * 1)
-      .skip((page - 1) * limit)
-      .populate('courseId', 'courseTitle courseThumbnail');
+      .skip((page - 1) * limit);
 
     const total = await Notification.countDocuments(query);
 
