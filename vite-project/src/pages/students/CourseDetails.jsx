@@ -1,5 +1,5 @@
 import React, { useContext, useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { toast } from 'react-toastify';
 import Youtube from 'react-youtube';
@@ -13,6 +13,7 @@ import Rating from '../../components/students/Rating';
 
 const CourseDetails = () => {
   const { id } = useParams();
+  const navigate = useNavigate();
   const [courseData, setCourseData] = useState(null);
   const [openSections, setOpensections] = useState({});
   const [isAlreadyEnrolled, setIsAlreadyEnrolled] = useState(false);
@@ -271,31 +272,10 @@ const CourseDetails = () => {
     return userRating && userRating.rating >= 4 && !hasTestimonial;
   };
 
-  const enrollCourse = async () => {
-    try {
-      if (!userData) return toast.warn('Login to Enroll');
-      if (isAlreadyEnrolled) return toast.warn('Already Enrolled');
-      if (!courseData || !courseData._id) {
-        return toast.error('Course data is missing');
-      }
-
-      const token = await getToken();
-      const url = backendUrl.endsWith('/') ? backendUrl + 'api/user/purchase' : backendUrl + '/api/user/purchase';
-      const { data } = await axios.post(
-        url,
-        { courseId: courseData._id },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-
-      if (data.success) {
-        const { session_url } = data;
-        window.location.replace(session_url);
-      } else {
-        toast.error(data.message);
-      }
-    } catch (error) {
-      toast.error(error.message);
-    }
+  const handleManualPayment = () => {
+    if (!userData) return toast.warn('Login to Enroll');
+    if (isAlreadyEnrolled) return toast.warn('Already Enrolled');
+    navigate(`/payment/${id}`);
   };
 
   // Accordion toggle: only one open at a time
@@ -664,12 +644,21 @@ const CourseDetails = () => {
                     </span>
                   )}
                 </div>
-                <button
-                  onClick={enrollCourse}
-                  className="bg-blue-600 text-white px-8 py-3 rounded-lg text-lg font-semibold hover:bg-blue-700 transition-colors w-full"
-                >
-                  {isAlreadyEnrolled ? 'Already Enrolled' : 'Enroll Now'}
-                </button>
+                {isAlreadyEnrolled ? (
+                  <button
+                    className="bg-green-600 text-white px-8 py-3 rounded-lg text-lg font-semibold w-full cursor-not-allowed"
+                    disabled
+                  >
+                    Already Enrolled
+                  </button>
+                ) : (
+                  <button
+                    onClick={handleManualPayment}
+                    className="bg-blue-600 text-white px-8 py-3 rounded-lg text-lg font-semibold hover:bg-blue-700 transition-colors w-full"
+                  >
+                    Enroll Now
+                  </button>
+                )}
                 <div className="text-gray-600 text-base mt-2">Course by <span className="font-semibold">{courseData.educator?.name || 'Unknown Educator'}</span></div>
               </div>
               {/* Rating, Timing, Lessons */}

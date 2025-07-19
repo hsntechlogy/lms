@@ -5,6 +5,7 @@ import CourseList from './pages/students/CoursesList';
 import CourseDetails from './pages/students/CourseDetails';
 import Home from './pages/students/Home';
 import MyEnrollments from './pages/students/MyEnrollments';
+import Payment from './pages/students/Payment';
 import Loading from './components/students/Loading';
 import { ToastContainer } from 'react-toastify';
 import Educator from './pages/educator/Educator';
@@ -33,6 +34,7 @@ const App = () => {
         <Route path="/course-list" element={<CourseList />} />
         <Route path="/course-list/:input" element={<CourseList />} />
         <Route path="/course/:id" element={<CourseDetails />} />
+        <Route path="/payment/:id" element={<Payment />} />
         <Route path="/my-enrollment" element={<MyEnrollments />} />
         <Route path="/loading/:path" element={<Loading />} />
 

@@ -1,8 +1,8 @@
 import User from "../models/Users.js"
-import Stripe from "stripe";
 import { Purchase } from "../models/Purchase.js";
 import Course from "../models/course.js";
 import { CourseProgress } from "../models/CourseProgress.js";
+import multer from "multer";
 
 // List of negative words to filter out
 const negativeWords = [
@@ -52,71 +52,6 @@ export const userEnrolledCourses = async (req, res) => {
         const courses = await Course.find({ enrolledStudents: userId }).populate('educator');
         res.json({ success: true, enrolledCourses: courses });
     } catch (error) {
-        res.json({ success: false, message: error.message });
-    }
-};
-
-export const purchaseCourse = async (req, res) => {
-    try {
-        const { courseId } = req.body;
-        const { origin } = req.headers;
-        const userId = req.auth.userId;
-
-        // Validate courseId
-        if (!courseId || courseId === 'undefined') {
-            return res.json({ success: false, message: 'Invalid course ID' });
-        }
-
-        const userData = await User.findById(userId);
-        const courseData = await Course.findById(courseId);
-
-        if (!userData || !courseData) {
-            return res.json({ success: false, message: 'User or course not found' });
-        }
-
-        // Check if already enrolled
-        if (courseData.enrolledStudents.includes(userId)) {
-            return res.json({ success: false, message: 'Already enrolled in this course' });
-        }
-
-        const purchaseData = {
-            courseId: courseData._id,
-            userId,
-            amount: (courseData.coursePrice - courseData.discount * courseData.coursePrice / 100).toFixed(2),
-        };
-
-        const newPurchase = await Purchase.create(purchaseData);
-
-        // Stripe Gateway Initialize
-        const stripeInstance = new Stripe(process.env.STRIPE_SECRET_KEY);
-        const currency = (process.env.VITE_CURRENCY || 'usd').toLowerCase();
-
-        // Creating line items for stripe
-        const line_items = [{
-            price_data: {
-                currency,
-                product_data: {
-                    name: courseData.courseTitle
-                },
-                unit_amount: Math.floor(newPurchase.amount) * 100
-            },
-            quantity: 1
-        }];
-
-        const session = await stripeInstance.checkout.sessions.create({
-            success_url: `${origin}/loading/my-enrollments`,
-            cancel_url: `${origin}/`,
-            line_items: line_items,
-            mode: 'payment',
-            metadata: {
-                purchaseId: newPurchase._id.toString()
-            }
-        });
-
-        res.json({ success: true, session_url: session.url });
-
-    } catch (error) {
-        console.error('Purchase error:', error);
         res.json({ success: false, message: error.message });
     }
 };
@@ -394,6 +329,72 @@ export const getCourseTestimonials = async (req, res) => {
             testimonials: course.testimonials || []
         });
     } catch (error) {
+        res.json({ success: false, message: error.message });
+    }
+};
+
+// Manual payment endpoint
+export const manualPayment = async (req, res) => {
+    try {
+        const { courseId, email, phoneNumber, location, selectedBank } = req.body;
+        const userId = req.auth.userId;
+        const paymentScreenshot = req.file;
+
+        // Validate required fields
+        if (!courseId || !email || !phoneNumber || !location || !selectedBank) {
+            return res.json({ success: false, message: 'All fields are required' });
+        }
+
+        if (!paymentScreenshot) {
+            return res.json({ success: false, message: 'Payment screenshot is required' });
+        }
+
+        // Validate course exists
+        const course = await Course.findById(courseId);
+        if (!course) {
+            return res.json({ success: false, message: 'Course not found' });
+        }
+
+        // Check if already enrolled
+        if (course.enrolledStudents.includes(userId)) {
+            return res.json({ success: false, message: 'Already enrolled in this course' });
+        }
+
+        // Create purchase record
+        const purchaseData = {
+            courseId: course._id,
+            userId,
+            amount: (course.coursePrice - course.discount * course.coursePrice / 100).toFixed(2),
+            paymentMethod: 'manual',
+            paymentStatus: 'pending',
+            manualPaymentDetails: {
+                email,
+                phoneNumber,
+                location,
+                selectedBank,
+                screenshotUrl: paymentScreenshot.path || paymentScreenshot.filename
+            }
+        };
+
+        const newPurchase = await Purchase.create(purchaseData);
+
+        // Update user data if needed
+        const user = await User.findById(userId);
+        if (user) {
+            user.email = email;
+            user.phoneNumber = phoneNumber;
+            user.location = location;
+            await user.save();
+        }
+
+        res.json({ 
+            success: true, 
+            message: 'Manual payment submitted successfully. We will verify and provide access soon.',
+            purchaseId: newPurchase._id
+        });
+
+    } catch (error) {
+        console.error('Manual payment error:', error);
         res.json({ success: false, message: error.message });
     }
 };
