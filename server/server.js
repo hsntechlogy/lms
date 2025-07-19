@@ -2,6 +2,10 @@ import express from 'express';
 import cors from 'cors';
 import 'dotenv/config';
 
+import './models/course.js';
+import './models/Notification.js';
+import './models/Users.js';
+
 import connectDB from './configs/mongoDB.js';
 import connectCloudinary from './configs/cloudinary.js';
 import { clerkWebhooks, stripeWebhooks } from './controllers/webhooks.js';
