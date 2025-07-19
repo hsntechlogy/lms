@@ -1,5 +1,5 @@
-import Notification from '../models/Notification.js';
 import Course from '../models/course.js';
+import Notification from '../models/Notification.js';
 import User from '../models/Users.js';
 
 // Get user notifications
