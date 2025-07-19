@@ -4,6 +4,7 @@ import { assets } from '../../assets/assets';
 import { AppContext } from '../../context/AppContext';
 import Footer from '../../components/students/Footer';
 import { toast } from 'react-toastify';
+import axios from 'axios';
 
 const Notifications = () => {
   const [notifications, setNotifications] = useState([]);
