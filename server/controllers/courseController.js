@@ -2,6 +2,7 @@
 import Course from "../models/course.js";
 import User from "../models/Users.js";
 import { clerkClient } from '@clerk/clerk-sdk-node';
+import { createNewCourseNotification } from './notificationController.js';
 
 // Debug function to get all courses regardless of published status
 export const getAllCoursesDebug = async (req, res) => {

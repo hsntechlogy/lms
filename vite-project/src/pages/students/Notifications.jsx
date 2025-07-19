@@ -10,138 +10,125 @@ const Notifications = () => {
   const [filteredNotifications, setFilteredNotifications] = useState([]);
   const [filter, setFilter] = useState('all');
   const [loading, setLoading] = useState(true);
-  const { userData } = useContext(AppContext);
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const { userData, backendUrl, getToken } = useContext(AppContext);
   const navigate = useNavigate();
 
-  // Mock notifications - in a real app, these would come from an API
-  useEffect(() => {
-    const mockNotifications = [
-      {
-        id: 1,
-        type: 'new_lecture',
-        title: 'New Lecture Available',
-        message: 'New lecture "Advanced JavaScript Concepts" added to JavaScript Course. This lecture covers advanced topics like closures, prototypes, and ES6 features.',
-        courseId: 'course1',
-        courseTitle: 'JavaScript Fundamentals',
-        timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000), // 2 hours ago
-        isRead: false
-      },
-      {
-        id: 2,
-        type: 'course_update',
-        title: 'Course Updated',
-        message: 'React Course has been updated with new content and exercises. New modules on React Hooks and Context API have been added.',
-        courseId: 'course2',
-        courseTitle: 'React Development',
-        timestamp: new Date(Date.now() - 24 * 60 * 60 * 1000), // 1 day ago
-        isRead: false
-      },
-      {
-        id: 3,
-        type: 'live_class',
-        title: 'Live Class Reminder',
-        message: 'Live class "Web Development Q&A" starts in 30 minutes. Join us for an interactive session with industry experts.',
-        courseId: 'course3',
-        courseTitle: 'Web Development',
-        timestamp: new Date(Date.now() - 30 * 60 * 1000), // 30 minutes ago
-        isRead: true
-      },
-      {
-        id: 4,
-        type: 'achievement',
-        title: 'Achievement Unlocked',
-        message: 'Congratulations! You completed "JavaScript Fundamentals" course with distinction. You earned a certificate and 100 points.',
-        courseId: 'course1',
-        courseTitle: 'JavaScript Fundamentals',
-        timestamp: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000), // 3 days ago
-        isRead: true
-      },
-      {
-        id: 5,
-        type: 'new_course',
-        title: 'New Course Available',
-        message: 'New course "Python for Data Science" is now available. Learn data analysis, machine learning, and visualization with Python.',
-        courseId: 'course4',
-        courseTitle: 'Python for Data Science',
-        timestamp: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000), // 5 days ago
-        isRead: true
-      },
-      {
-        id: 6,
-        type: 'live_class',
-        title: 'Live Class Scheduled',
-        message: 'New live class "Advanced React Patterns" scheduled for tomorrow at 2 PM. Don\'t miss this opportunity to learn from experts.',
-        courseId: 'course2',
-        courseTitle: 'React Development',
-        timestamp: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000), // 7 days ago
-        isRead: true
-      },
-      {
-        id: 7,
-        type: 'course_update',
-        title: 'Course Content Updated',
-        message: 'Node.js course has been updated with new practical exercises and real-world projects.',
-        courseId: 'course5',
-        courseTitle: 'Node.js Backend',
-        timestamp: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000), // 10 days ago
-        isRead: true
+  // Fetch notifications from API
+  const fetchNotifications = async (pageNum = 1, filterType = 'all') => {
+    if (!userData) return;
+    
+    try {
+      setLoading(true);
+      const token = await getToken();
+      let url = backendUrl.replace(/\/$/, '') + `/api/notifications?page=${pageNum}&limit=20`;
+      
+      if (filterType !== 'all') {
+        if (filterType === 'unread') {
+          url += '&isRead=false';
+        } else {
+          url += `&type=${filterType}`;
+        }
       }
-    ];
+      
+      const { data } = await axios.get(url, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
 
-    setNotifications(mockNotifications);
-    setFilteredNotifications(mockNotifications);
-    setLoading(false);
-  }, []);
+      if (data.success) {
+        setNotifications(data.notifications);
+        setFilteredNotifications(data.notifications);
+        setTotalPages(data.totalPages);
+        setPage(data.page);
+      } else {
+        console.error('Failed to fetch notifications:', data.message);
+      }
+    } catch (error) {
+      console.error('Error fetching notifications:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    let filtered = notifications;
-    
-    switch (filter) {
-      case 'unread':
-        filtered = notifications.filter(n => !n.isRead);
-        break;
-      case 'new_lecture':
-        filtered = notifications.filter(n => n.type === 'new_lecture');
-        break;
-      case 'course_update':
-        filtered = notifications.filter(n => n.type === 'course_update');
-        break;
-      case 'live_class':
-        filtered = notifications.filter(n => n.type === 'live_class');
-        break;
-      case 'achievement':
-        filtered = notifications.filter(n => n.type === 'achievement');
-        break;
-      case 'new_course':
-        filtered = notifications.filter(n => n.type === 'new_course');
-        break;
-      default:
-        filtered = notifications;
+    if (userData) {
+      fetchNotifications(1, filter);
     }
-    
-    setFilteredNotifications(filtered);
-  }, [filter, notifications]);
+  }, [userData, filter]);
 
-  const markAsRead = (notificationId) => {
-    setNotifications(prev => 
-      prev.map(notification => 
-        notification.id === notificationId 
-          ? { ...notification, isRead: true }
-          : notification
-      )
-    );
+  // Remove the old useEffect for filtering since we're now fetching filtered data from API
+
+  const markAsRead = async (notificationId) => {
+    try {
+      const token = await getToken();
+      const url = backendUrl.replace(/\/$/, '') + `/api/notifications/${notificationId}/read`;
+      
+      const { data } = await axios.patch(url, {}, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      if (data.success) {
+        setNotifications(prev => 
+          prev.map(notification => 
+            notification._id === notificationId 
+              ? { ...notification, isRead: true }
+              : notification
+          )
+        );
+        setFilteredNotifications(prev => 
+          prev.map(notification => 
+            notification._id === notificationId 
+              ? { ...notification, isRead: true }
+              : notification
+          )
+        );
+      }
+    } catch (error) {
+      console.error('Error marking notification as read:', error);
+    }
   };
 
-  const markAllAsRead = () => {
-    setNotifications(prev => 
-      prev.map(notification => ({ ...notification, isRead: true }))
-    );
-    toast.success('All notifications marked as read');
+  const markAllAsRead = async () => {
+    try {
+      const token = await getToken();
+      const url = backendUrl.replace(/\/$/, '') + '/api/notifications/mark-all-read';
+      
+      const { data } = await axios.patch(url, {}, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      if (data.success) {
+        setNotifications(prev => 
+          prev.map(notification => ({ ...notification, isRead: true }))
+        );
+        setFilteredNotifications(prev => 
+          prev.map(notification => ({ ...notification, isRead: true }))
+        );
+        toast.success('All notifications marked as read');
+      }
+    } catch (error) {
+      console.error('Error marking all notifications as read:', error);
+    }
   };
 
-  const deleteNotification = (notificationId) => {
-    setNotifications(prev => prev.filter(n => n.id !== notificationId));
-    toast.success('Notification deleted');
+  const deleteNotification = async (notificationId) => {
+    try {
+      const token = await getToken();
+      const url = backendUrl.replace(/\/$/, '') + `/api/notifications/${notificationId}`;
+      
+      const { data } = await axios.delete(url, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      if (data.success) {
+        setNotifications(prev => prev.filter(n => n._id !== notificationId));
+        setFilteredNotifications(prev => prev.filter(n => n._id !== notificationId));
+        toast.success('Notification deleted');
+      }
+    } catch (error) {
+      console.error('Error deleting notification:', error);
+    }
   };
 
   const getNotificationIcon = (type) => {
@@ -213,7 +200,7 @@ const Notifications = () => {
 
   const handleNotificationClick = (notification) => {
     if (!notification.isRead) {
-      markAsRead(notification.id);
+      markAsRead(notification._id);
     }
     
     // Navigate based on notification type
@@ -310,7 +297,7 @@ const Notifications = () => {
             <div className="space-y-4">
               {filteredNotifications.map((notification) => (
                 <div
-                  key={notification.id}
+                  key={notification._id}
                   className={`bg-white rounded-lg border p-6 transition-all hover:shadow-md ${
                     !notification.isRead ? 'border-blue-200 bg-blue-50' : 'border-gray-200'
                   }`}
@@ -347,9 +334,9 @@ const Notifications = () => {
                           </p>
                           <div className="flex items-center justify-between">
                             <div className="flex items-center gap-4">
-                              <span className="text-sm text-gray-500">
-                                {formatTimestamp(notification.timestamp)}
-                              </span>
+                                                          <span className="text-sm text-gray-500">
+                              {formatTimestamp(new Date(notification.createdAt))}
+                            </span>
                               {notification.courseTitle && (
                                 <span className="text-sm text-blue-600 bg-blue-100 px-3 py-1 rounded-full">
                                   {notification.courseTitle}

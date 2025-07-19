@@ -10,6 +10,7 @@ import educatorRouter from './routes/educatorRoutes.js';
 import adminRouter from './routes/adminRoutes.js';
 import courseRouter from './routes/courseRoute.js';
 import userRouter from './routes/userRoutes.js';
+import notificationRouter from './routes/notificationRoutes.js';
 
 const app = express();
 
@@ -86,6 +87,7 @@ app.use('/api/educator', educatorRouter);
 app.use('/api/admin', adminRouter);
 app.use('/api/course', courseRouter);
 app.use('/api/user', userRouter);
+app.use('/api/notifications', notificationRouter);
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));

@@ -8,84 +8,104 @@ const NotificationDropdown = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
-  const { userData, enrolledCourses } = useContext(AppContext);
+  const [loading, setLoading] = useState(false);
+  const { userData, enrolledCourses, backendUrl, getToken } = useContext(AppContext);
 
-  // Mock notifications - in a real app, these would come from an API
-  useEffect(() => {
-    const mockNotifications = [
-      {
-        id: 1,
-        type: 'new_lecture',
-        title: 'New Lecture Available',
-        message: 'New lecture "Advanced JavaScript Concepts" added to JavaScript Course',
-        courseId: 'course1',
-        courseTitle: 'JavaScript Fundamentals',
-        timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000), // 2 hours ago
-        isRead: false
-      },
-      {
-        id: 2,
-        type: 'course_update',
-        title: 'Course Updated',
-        message: 'React Course has been updated with new content and exercises',
-        courseId: 'course2',
-        courseTitle: 'React Development',
-        timestamp: new Date(Date.now() - 24 * 60 * 60 * 1000), // 1 day ago
-        isRead: false
-      },
-      {
-        id: 3,
-        type: 'live_class',
-        title: 'Live Class Reminder',
-        message: 'Live class "Web Development Q&A" starts in 30 minutes',
-        courseId: 'course3',
-        courseTitle: 'Web Development',
-        timestamp: new Date(Date.now() - 30 * 60 * 1000), // 30 minutes ago
-        isRead: true
-      },
-      {
-        id: 4,
-        type: 'achievement',
-        title: 'Achievement Unlocked',
-        message: 'Congratulations! You completed "JavaScript Fundamentals" course',
-        courseId: 'course1',
-        courseTitle: 'JavaScript Fundamentals',
-        timestamp: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000), // 3 days ago
-        isRead: true
-      },
-      {
-        id: 5,
-        type: 'new_course',
-        title: 'New Course Available',
-        message: 'New course "Python for Data Science" is now available',
-        courseId: 'course4',
-        courseTitle: 'Python for Data Science',
-        timestamp: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000), // 5 days ago
-        isRead: true
+  // Fetch notifications from API
+  const fetchNotifications = async () => {
+    if (!userData) return;
+    
+    try {
+      setLoading(true);
+      const token = await getToken();
+      const url = backendUrl.replace(/\/$/, '') + '/api/notifications?limit=5';
+      
+      const { data } = await axios.get(url, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      if (data.success) {
+        setNotifications(data.notifications);
+      } else {
+        console.error('Failed to fetch notifications:', data.message);
       }
-    ];
-
-    setNotifications(mockNotifications);
-    setUnreadCount(mockNotifications.filter(n => !n.isRead).length);
-  }, []);
-
-  const markAsRead = (notificationId) => {
-    setNotifications(prev => 
-      prev.map(notification => 
-        notification.id === notificationId 
-          ? { ...notification, isRead: true }
-          : notification
-      )
-    );
-    setUnreadCount(prev => Math.max(0, prev - 1));
+    } catch (error) {
+      console.error('Error fetching notifications:', error);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const markAllAsRead = () => {
-    setNotifications(prev => 
-      prev.map(notification => ({ ...notification, isRead: true }))
-    );
-    setUnreadCount(0);
-    toast.success('All notifications marked as read');
+  // Fetch unread count
+  const fetchUnreadCount = async () => {
+    if (!userData) return;
+    
+    try {
+      const token = await getToken();
+      const url = backendUrl.replace(/\/$/, '') + '/api/notifications/unread-count';
+      
+      const { data } = await axios.get(url, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      if (data.success) {
+        setUnreadCount(data.count);
+      }
+    } catch (error) {
+      console.error('Error fetching unread count:', error);
+    }
+  };
+
+  useEffect(() => {
+    if (userData) {
+      fetchNotifications();
+      fetchUnreadCount();
+    }
+  }, [userData]);
+
+  const markAsRead = async (notificationId) => {
+    try {
+      const token = await getToken();
+      const url = backendUrl.replace(/\/$/, '') + `/api/notifications/${notificationId}/read`;
+      
+      const { data } = await axios.patch(url, {}, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      if (data.success) {
+        setNotifications(prev => 
+          prev.map(notification => 
+            notification._id === notificationId 
+              ? { ...notification, isRead: true }
+              : notification
+          )
+        );
+        setUnreadCount(prev => Math.max(0, prev - 1));
+      }
+    } catch (error) {
+      console.error('Error marking notification as read:', error);
+    }
+  };
+
+  const markAllAsRead = async () => {
+    try {
+      const token = await getToken();
+      const url = backendUrl.replace(/\/$/, '') + '/api/notifications/mark-all-read';
+      
+      const { data } = await axios.patch(url, {}, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      if (data.success) {
+        setNotifications(prev => 
+          prev.map(notification => ({ ...notification, isRead: true }))
+        );
+        setUnreadCount(0);
+        toast.success('All notifications marked as read');
+      }
+    } catch (error) {
+      console.error('Error marking all notifications as read:', error);
+    }
   };
 
   const getNotificationIcon = (type) => {
@@ -140,7 +160,7 @@ const NotificationDropdown = () => {
 
   const handleNotificationClick = (notification) => {
     if (!notification.isRead) {
-      markAsRead(notification.id);
+      markAsRead(notification._id);
     }
     
     // Navigate based on notification type
@@ -205,7 +225,7 @@ const NotificationDropdown = () => {
               <div className="divide-y divide-gray-100">
                 {notifications.map((notification) => (
                   <div
-                    key={notification.id}
+                    key={notification._id}
                     onClick={() => handleNotificationClick(notification)}
                     className={`p-4 hover:bg-gray-50 cursor-pointer transition-colors ${
                       !notification.isRead ? 'bg-blue-50' : ''
@@ -231,7 +251,7 @@ const NotificationDropdown = () => {
                         </p>
                         <div className="flex items-center justify-between mt-2">
                           <span className="text-xs text-gray-500">
-                            {formatTimestamp(notification.timestamp)}
+                            {formatTimestamp(new Date(notification.createdAt))}
                           </span>
                           {notification.courseTitle && (
                             <span className="text-xs text-blue-600 bg-blue-100 px-2 py-1 rounded">

@@ -3,6 +3,7 @@ import { Purchase } from "../models/Purchase.js";
 import Course from "../models/course.js";
 import { CourseProgress } from "../models/CourseProgress.js";
 import multer from "multer";
+import { createCourseCompletionNotification, createPaymentSuccessNotification } from './notificationController.js';
 
 // List of negative words to filter out
 const negativeWords = [
@@ -85,6 +86,24 @@ export const updateUserCourseProgress = async (req, res) => {
         }
 
         await progress.save();
+        
+        // Check if course is completed and create notification
+        const course = await Course.findById(courseId);
+        if (course) {
+            const totalLectures = course.courseContent.reduce((total, chapter) => 
+                total + chapter.chapterContent.length, 0
+            );
+            
+            if (progress.lectureCompleted.length >= totalLectures) {
+                // Course completed - create notification
+                try {
+                    await createCourseCompletionNotification(userId, courseId);
+                } catch (error) {
+                    console.error('Error creating course completion notification:', error);
+                }
+            }
+        }
+        
         res.json({ success: true, message: 'Progress updated' });
     } catch (error) {
         res.json({ success: false, message: error.message });
@@ -385,6 +404,13 @@ export const manualPayment = async (req, res) => {
             user.phoneNumber = phoneNumber;
             user.location = location;
             await user.save();
+        }
+
+        // Create payment success notification
+        try {
+            await createPaymentSuccessNotification(userId, courseId);
+        } catch (error) {
+            console.error('Error creating payment success notification:', error);
         }
 
         res.json({ 
