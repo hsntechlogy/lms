@@ -7,6 +7,9 @@ import {
   deleteNotification 
 } from '../controllers/notificationController.js';
 import { protectUser } from '../middlewares/authMiddleware.js';
+import '../models/course.js';
+import '../models/Notification.js';
+import '../models/Users.js';
 
 const notificationRouter = express.Router();
 
