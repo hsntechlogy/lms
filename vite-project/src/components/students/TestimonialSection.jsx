@@ -93,7 +93,7 @@ const TestimonialsSection = () => {
 
   return (
     <div
-      className="pb-24 px-8 md:px-0 relative group"
+      className="pb-24 px-8 md:px-0 relative group testimonials-section-spacing"
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
       onMouseMove={handleMouseMove}

@@ -165,12 +165,19 @@ const Hero = () => {
             </div>
           </div>
         )}
-        {/* Mascot that jumps to mouse X position */}
-        <span
-          className="mascot-jump"
-          style={{ transform: `translate(-50%, 0) translateX(${mascotX - 50}vw)` }}
-          dangerouslySetInnerHTML={{ __html: mascotSVG }}
-        />
+        {/* 3D Robot Shark Model as background */}
+        <div
+          className="robot-shark-bg"
+          style={{ position: 'fixed', left: 0, top: 0, width: '100vw', height: '100vh', zIndex: 0, pointerEvents: 'none', overflow: 'hidden' }}
+        >
+          <iframe
+            title="Marin the Robot Shark"
+            src="https://sketchfab.com/models/3fa82b4978de454789fd705ecbbc214c/embed?autostart=1&ui_theme=dark&dnt=1&autospin=0.5"
+            frameBorder="0"
+            allow="autoplay; fullscreen; vr"
+            style={{ width: '600px', height: '400px', border: 'none', position: 'absolute', left: '50%', top: '60%', transform: 'translate(-50%, -50%) scale(1.1)', pointerEvents: 'none', opacity: 0.85, animation: 'robotSharkFloat 7s ease-in-out infinite alternate' }}
+          ></iframe>
+        </div>
       </div>
     </div>
   );
