@@ -11,6 +11,7 @@ const Hero = () => {
   const [empowerHovered, setEmpowerHovered] = useState(false);
   const [moneyRain, setMoneyRain] = useState(false);
   const moneyRainTimeout = useRef();
+  const fitRef = useRef();
 
   // Trigger money rain animation
   const handleMoneyHover = () => {
@@ -19,33 +20,45 @@ const Hero = () => {
     moneyRainTimeout.current = setTimeout(() => setMoneyRain(false), 1200);
   };
 
-  // Generate random positions for coins
-  const coins = Array.from({ length: 5 }).map((_, i) => ({
-    left: `${10 + i * 20}%`,
-    delay: `${i * 0.1}s`,
-  }));
+  // Get width of fit your choice span for rain
+  const getFitWidth = () => {
+    if (fitRef.current) {
+      return fitRef.current.offsetWidth;
+    }
+    return 160;
+  };
+
+  // Generate random positions for coins across full width
+  const coins = Array.from({ length: 8 }).map((_, i) => {
+    const left = Math.random() * (getFitWidth() - 32);
+    return {
+      left: `${left}px`,
+      delay: `${i * 0.1}s`,
+    };
+  });
 
   return (
     <div className='flex flex-col items-center justify-center w-full md:pt-36 pt-20 px-7 md:px-0 space-y-7 text-center bg-gradient-to-b from-cyan-100/70' >
       <h1 className='md:text-5xl text-3xl font-extrabold text-gray-800 max-w-3xl mx-auto relative' style={{lineHeight:'1.2'}}> 
-        <span 
-          className={`relative inline-block mr-2 ${empowerHovered ? 'empower-hovered' : ''}`}
+        <span
+          className={`empower-animate${empowerHovered ? ' empower-hovered' : ''}`}
           onMouseEnter={() => setEmpowerHovered(true)}
-          onAnimationEnd={() => setEmpowerHovered(false)}
-          style={{zIndex:1}}
+          onMouseLeave={() => setEmpowerHovered(false)}
+          style={{marginRight: 8}}
         >
-          <span className="empower-circle" />
-          <span style={{position:'relative', zIndex:2}}>Empower</span>
+          <span className="empower-bg" />
+          <span className="empower-word">Empower</span>
         </span>
-        your future with the courses design to 
-        <span 
-          className='text-blue-600 relative cursor-pointer ml-2' 
+        your future with the courses design to
+        <span
+          ref={fitRef}
+          className='text-blue-600 relative cursor-pointer ml-2 inline-block'
           onMouseEnter={handleMoneyHover}
         >
           fit your choice.
           {/* Money rain animation */}
           {moneyRain && (
-            <span className="money-rain" style={{width:'160px', height:'120px'}}>
+            <span className="money-rain" style={{width: getFitWidth(), height:'120px'}}>
               {coins.map((coin, i) => (
                 <span
                   key={i}
@@ -65,16 +78,19 @@ const Hero = () => {
       {/* Course List Section for Home Page */}
       {allCourses && allCourses.length > 0 && (
         <div className='w-full max-w-6xl px-4'>
-          <h2 className='text-2xl font-semibold text-gray-800 mb-6'>Learn More with Our Featured Courses</h2>
+          <h2 className='text-2xl font-semibold text-gray-800 mb-6 featured-animate'>Learn More with Our Featured Courses</h2>
           <div className='grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4'>
             {allCourses.slice(0, 4).map((course, index) => (
-              <CourseCard key={index} course={course} />
+              <div className='featured-animate' style={{animationDelay: `${0.3 + index * 0.1}s`}} key={index}>
+                <CourseCard course={course} />
+              </div>
             ))}
           </div>
           <div className='text-center mt-6'>
-            <button 
+            <button
               onClick={() => window.location.href = '/courses'}
-              className='bg-blue-600 text-white px-8 py-3 rounded-md hover:bg-blue-700 transition-colors'
+              className='bg-blue-600 text-white px-8 py-3 rounded-md hover:bg-blue-700 transition-colors featured-animate'
+              style={{animationDelay: '0.7s'}}
             >
               View All Courses
             </button>

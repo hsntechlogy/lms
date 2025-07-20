@@ -97,12 +97,46 @@ display: none;
   animation: bounceOut 1s both;
 }
 
-/* --- Money rain animation --- */
+/* --- Empower bounceOut animation (word and bg) --- */
+.empower-animate {
+  display: inline-block;
+  position: relative;
+  cursor: pointer;
+}
+.empower-bg {
+  position: absolute;
+  left: 0;
+  top: 50%;
+  width: 100%;
+  height: 2.2em;
+  background: rgba(59,130,246,0.15); /* blue-600, faded */
+  border-radius: 999px;
+  transform: translateY(-50%);
+  z-index: 0;
+  opacity: 0;
+  transition: opacity 0.2s;
+  pointer-events: none;
+}
+.empower-animate.empower-hovered .empower-bg {
+  opacity: 1;
+  animation: bounceOut 1s both;
+}
+.empower-animate .empower-word {
+  position: relative;
+  z-index: 1;
+  transition: color 0.2s;
+}
+.empower-animate.empower-hovered .empower-word {
+  animation: bounceOut 1s both;
+}
+
+/* --- Dollar rain from full width --- */
 .money-rain {
   position: absolute;
-  left: 50%;
+  left: 0;
   top: 100%;
-  transform: translateX(-50%);
+  width: 100%;
+  height: 120px;
   pointer-events: none;
   z-index: 10;
 }
@@ -110,7 +144,6 @@ display: none;
   width: 32px;
   height: 32px;
   position: absolute;
-  left: 0;
   animation: money-fall 1.2s linear forwards, money-spin 1.2s linear forwards;
 }
 @keyframes money-fall {
@@ -121,4 +154,24 @@ display: none;
 @keyframes money-spin {
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
+}
+
+/* --- Carousel --- */
+.carousel-track {
+  display: flex;
+  transition: transform 0.7s cubic-bezier(0.4,0,0.2,1);
+  will-change: transform;
+}
+
+/* --- Featured Courses Animations --- */
+.featured-animate {
+  opacity: 0;
+  transform: translateY(40px) scale(0.95);
+  animation: fadeUpIn 0.8s cubic-bezier(0.4,0,0.2,1) 0.2s forwards;
+}
+@keyframes fadeUpIn {
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
 }
