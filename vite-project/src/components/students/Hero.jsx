@@ -55,12 +55,12 @@ const Hero = () => {
 
   return (
     <div className="relative w-full">
-      <div className="absolute inset-0 w-full h-full pointer-events-none z-0">
+      <div className="absolute inset-0 w-full h-full pointer-events-none z-0" style={{zIndex: 0}}>
         {techModels.map((model, i) => (
           <span
             key={i}
             className="tech-bg-model"
-            style={{ ...model.style, position: 'absolute', animationDelay: model.style.animationDelay }}
+            style={{ ...model.style, position: 'absolute', animationDelay: model.style.animationDelay, zIndex: 0, pointerEvents: 'none' }}
             dangerouslySetInnerHTML={{ __html: model.svg }}
           />
         ))}
@@ -99,7 +99,7 @@ const Hero = () => {
           </span>
         </h1>
         <div className="w-full flex justify-center">
-          <img src={assets.sketch} alt='sketch' className='md:block hidden mb-2' style={{maxWidth:'180px'}} />
+          <img src={assets.sketch} alt='sketch' className='md:block hidden' style={{maxWidth:'180px', marginTop: 0}} />
         </div>
         <p className='md:block hidden text-xl font-semibold text-gray-700 max-w-2xl mx-auto'>We bring together world class instructor, interactive content and a sportive community to help you achieve your personal and professional goals</p>
         <p className='md:hidden text-lg font-semibold text-gray-700 max-w-sm mx-auto'>We bring together world class instructor, interactive content and a sportive community to help you achieve your personal and professional goals</p>

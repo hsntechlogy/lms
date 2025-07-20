@@ -65,8 +65,12 @@ const Companies = () => {
   };
   const handleTouchEnd = () => setIsDragging(false);
 
-  // Duplicate logos for seamless loop
-  const logos = [...companyLogos, ...companyLogos, ...companyLogos];
+  // Duplicate logos for seamless loop and to fill the container
+  const minLogos = 12;
+  let logos = [];
+  while (logos.length < minLogos) {
+    logos = logos.concat(companyLogos);
+  }
 
   // CSS fallback for continuous movement
   // If JS auto-scroll fails, the .carousel-track-animate class will animate the logos

@@ -9,6 +9,14 @@ const TestimonialsSection = () => {
   const [showAll, setShowAll] = useState(false);
   const { backendUrl, isEducator, userData, getToken } = useContext(AppContext);
   const [hovered, setHovered] = useState(false);
+  const [circlePos, setCirclePos] = useState({ x: 50, y: 30 });
+
+  const handleMouseMove = (e) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    const x = ((e.clientX - rect.left) / rect.width) * 100;
+    const y = ((e.clientY - rect.top) / rect.height) * 100;
+    setCirclePos({ x, y });
+  };
 
   const isAdmin = userData && userData.isAdmin;
   const canSeeAll = isEducator || isAdmin;
@@ -84,13 +92,23 @@ const TestimonialsSection = () => {
   const displayedTestimonials = canSeeAll && showAll ? testimonials : testimonials.slice(0, 3);
 
   return (
-    <div className="pb-14 px-8 md:px-0 relative group"
+    <div
+      className="pb-24 px-8 md:px-0 relative group"
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
+      onMouseMove={handleMouseMove}
+      style={{ zIndex: 1 }}
     >
-      <div className={`testimonials-circle-bg${hovered ? ' testimonials-circle-float' : ''}`}></div>
-      <h2 className={`text-4xl md:text-5xl text-center font-extrabold text-gray-800 testimonials-animated-modern${hovered ? ' testimonials-animated-modern-hover' : ''}`}>Testimonials</h2>
-      <p className={`md:text-2xl text-lg text-center font-semibold text-gray-700 mt-4 testimonials-animated-modern${hovered ? ' testimonials-animated-modern-hover' : ''}`}>
+      <div
+        className="testimonials-circle-bg"
+        style={{
+          left: `${circlePos.x}%`,
+          top: `${circlePos.y}%`,
+          transform: `translate(-50%, -50%)`,
+        }}
+      ></div>
+      <h2 className="text-4xl md:text-5xl text-center font-extrabold text-gray-800 testimonials-animated-modern">Testimonials</h2>
+      <p className="md:text-2xl text-lg text-center font-semibold text-gray-700 mt-4 testimonials-animated-modern">
         Hear from our learners as they share their journey of transformation,
         success and how our <br /> platform has made a difference in their lives
       </p>
