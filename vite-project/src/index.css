@@ -347,20 +347,40 @@ display: none;
   100% { transform: scale(1) translateY(0); }
 }
 
-/* --- Tech models background animation --- */
+/* --- Tech models background animation (faster, pointer-events none) --- */
 .tech-bg-model {
   opacity: 0.18;
   filter: blur(0.5px);
-  animation: techModelFloat 12s ease-in-out infinite alternate;
+  animation: techModelFloat 5s ease-in-out infinite alternate;
+  pointer-events: none;
 }
-.tech-bg-model:nth-child(2) { animation-delay: 2s; animation-duration: 14s; }
-.tech-bg-model:nth-child(3) { animation-delay: 4s; animation-duration: 16s; }
-.tech-bg-model:nth-child(4) { animation-delay: 6s; animation-duration: 18s; }
+.tech-bg-model:nth-child(2) { animation-delay: 1s; animation-duration: 6s; }
+.tech-bg-model:nth-child(3) { animation-delay: 2s; animation-duration: 7s; }
+.tech-bg-model:nth-child(4) { animation-delay: 3s; animation-duration: 8s; }
+.tech-bg-model:nth-child(5) { animation-delay: 4s; animation-duration: 9s; }
+.tech-bg-model:nth-child(6) { animation-delay: 5s; animation-duration: 10s; }
+.tech-bg-model:nth-child(7) { animation-delay: 6s; animation-duration: 11s; }
+.tech-bg-model:nth-child(8) { animation-delay: 7s; animation-duration: 12s; }
+.tech-bg-model:nth-child(9) { animation-delay: 8s; animation-duration: 13s; }
+.tech-bg-model:nth-child(10) { animation-delay: 9s; animation-duration: 14s; }
 @keyframes techModelFloat {
   0% { transform: translateY(0) scale(1) rotate(0deg); }
   30% { transform: translateY(-18px) scale(1.04) rotate(-2deg); }
   60% { transform: translateY(12px) scale(0.98) rotate(2deg); }
   100% { transform: translateY(0) scale(1) rotate(0deg); }
+}
+
+/* --- Mascot jump animation --- */
+.mascot-jump {
+  position: fixed;
+  top: 70vh;
+  left: 50vw;
+  z-index: 10;
+  width: 80px;
+  height: 80px;
+  pointer-events: none;
+  transition: transform 0.5s cubic-bezier(0.4,0,0.2,1);
+  will-change: transform;
 }
 
 /* --- Debug border for tech models --- */

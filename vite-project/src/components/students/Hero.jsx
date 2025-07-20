@@ -26,6 +26,7 @@ const aiBrainSVG = `<svg width="60" height="60" viewBox="0 0 60 60" fill="none" 
 const robotSVG = `<svg width="60" height="60" viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="18" y="18" width="24" height="24" rx="8" fill="#f3f4f6" stroke="#d1d5db" stroke-width="2"/><rect x="26" y="34" width="8" height="4" rx="2" fill="#a1a1aa"/><circle cx="26" cy="28" r="2" fill="#a1a1aa"/><circle cx="34" cy="28" r="2" fill="#a1a1aa"/></svg>`;
 const trophySVG = `<svg width="60" height="60" viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="20" y="20" width="20" height="20" rx="10" fill="#f3f4f6" stroke="#fbbf24" stroke-width="2"/><rect x="28" y="40" width="4" height="8" rx="2" fill="#fbbf24"/><ellipse cx="30" cy="20" rx="10" ry="4" fill="#fde68a"/></svg>`;
 const flagSVG = `<svg width="60" height="60" viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="28" y="10" width="4" height="40" rx="2" fill="#a1a1aa"/><rect x="32" y="14" width="16" height="10" rx="2" fill="#60a5fa"/><rect x="32" y="26" width="12" height="8" rx="2" fill="#fbbf24"/></svg>`;
+const mascotSVG = `<svg width="80" height="80" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg"><ellipse cx="40" cy="70" rx="20" ry="8" fill="#e5e7eb"/><circle cx="40" cy="36" r="20" fill="#f3f4f6" stroke="#d1d5db" stroke-width="2"/><ellipse cx="40" cy="36" rx="12" ry="12" fill="#fff" stroke="#a1a1aa" stroke-width="2"/><rect x="34" y="50" width="12" height="16" rx="6" fill="#e5e7eb"/><rect x="32" y="66" width="16" height="8" rx="4" fill="#d1d5db"/><rect x="60" y="24" width="8" height="24" rx="4" fill="#f3f4f6" stroke="#d1d5db" stroke-width="2"/></svg>`;
 
 const spaceModels = [
   { svg: astronautWavingSVG, style: { left: '8%', top: '18%', animationDelay: '0s' }, prompt: 'Wave hello to your future!' },
@@ -47,6 +48,18 @@ const Hero = () => {
   const moneyRainTimeout = useRef();
   const fitRef = useRef();
   const [modelPrompt, setModelPrompt] = useState(null);
+  const [mascotX, setMascotX] = useState(50); // percent of viewport width
+
+  // Mouse move handler for mascot
+  React.useEffect(() => {
+    const handleMouseMove = (e) => {
+      if (window.scrollY > window.innerHeight) return; // Only in first 100vh
+      const x = (e.clientX / window.innerWidth) * 100;
+      setMascotX(x);
+    };
+    window.addEventListener('mousemove', handleMouseMove);
+    return () => window.removeEventListener('mousemove', handleMouseMove);
+  }, []);
 
   // Trigger money rain animation
   const handleMoneyHover = () => {
@@ -152,6 +165,12 @@ const Hero = () => {
             </div>
           </div>
         )}
+        {/* Mascot that jumps to mouse X position */}
+        <span
+          className="mascot-jump"
+          style={{ transform: `translate(-50%, 0) translateX(${mascotX - 50}vw)` }}
+          dangerouslySetInnerHTML={{ __html: mascotSVG }}
+        />
       </div>
     </div>
   );
