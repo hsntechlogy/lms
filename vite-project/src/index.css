@@ -424,10 +424,22 @@ display: none;
   100% { opacity: 0.5; }
 }
 
-@keyframes robotSharkFloat {
-  0% { transform: translate(-50%, -50%) scale(1.1) translateY(0); }
-  50% { transform: translate(-50%, -50%) scale(1.1) translateY(-30px); }
-  100% { transform: translate(-50%, -50%) scale(1.1) translateY(0); }
+/* --- Zigzag/random animation for robot shark background --- */
+.robot-shark-zigzag {
+  animation: robotSharkZigzag 14s cubic-bezier(0.4,0,0.2,1) infinite alternate;
+}
+@keyframes robotSharkZigzag {
+  0%   { left: 5vw;  top: 10vh; }
+  10%  { left: 20vw; top: 20vh; }
+  20%  { left: 40vw; top: 8vh; }
+  30%  { left: 60vw; top: 18vh; }
+  40%  { left: 80vw; top: 30vh; }
+  50%  { left: 60vw; top: 60vh; }
+  60%  { left: 40vw; top: 80vh; }
+  70%  { left: 20vw; top: 60vh; }
+  80%  { left: 10vw; top: 40vh; }
+  90%  { left: 30vw; top: 20vh; }
+  100% { left: 5vw;  top: 10vh; }
 }
 
 /* Add spacing to testimonials section */
