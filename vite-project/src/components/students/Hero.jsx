@@ -4,7 +4,16 @@ import { AppContext } from '../../context/AppContext';
 import SearchBar from "./SearchBar";
 import CourseCard from "./CourseCard";
 
-const moneySVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 47 46" fill="none"><ellipse cx="23.5" cy="23" rx="23.5" ry="23" fill="#FFD700"/><ellipse cx="23.5" cy="23" rx="19.5" ry="19" fill="#FFF8DC"/><text x="50%" y="55%" text-anchor="middle" fill="#FFD700" font-size="20" font-family="Arial" dy=".3em">$</text></svg>`;
+const coinSVG = `<svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="16" cy="16" r="16" fill="#FFD700"/><circle cx="16" cy="16" r="13" fill="#FFF8DC"/><text x="50%" y="55%" text-anchor="middle" fill="#FFD700" font-size="16" font-family="Arial" dy=".3em">$</text></svg>`;
+const billSVG = `<svg width="40" height="24" viewBox="0 0 40 24" fill="none" xmlns="http://www.w3.org/2000/svg"><rect width="40" height="24" rx="5" fill="#4ADE80"/><rect x="4" y="4" width="32" height="16" rx="3" fill="#A7F3D0"/><text x="50%" y="60%" text-anchor="middle" fill="#059669" font-size="14" font-family="Arial" dy=".3em">$</text></svg>`;
+
+const burstItems = [
+  { svg: coinSVG, left: '10%' },
+  { svg: billSVG, left: '28%' },
+  { svg: coinSVG, left: '46%' },
+  { svg: billSVG, left: '64%' },
+  { svg: coinSVG, left: '82%' },
+];
 
 const Hero = () => {
   const { allCourses } = useContext(AppContext);
@@ -56,15 +65,15 @@ const Hero = () => {
           onMouseEnter={handleMoneyHover}
         >
           fit your choice.
-          {/* Money rain animation */}
+          {/* Trending currency burst animation */}
           {moneyRain && (
-            <span className="money-rain" style={{width: getFitWidth(), height:'120px'}}>
-              {coins.map((coin, i) => (
+            <span className="currency-burst" style={{width: getFitWidth(), height:'120px'}}>
+              {burstItems.map((item, i) => (
                 <span
                   key={i}
-                  className="money-coin"
-                  style={{ left: coin.left, animationDelay: coin.delay }}
-                  dangerouslySetInnerHTML={{ __html: moneySVG }}
+                  className={`currency-burst-item currency-burst-animate`}
+                  style={{ left: item.left, animationDelay: `${i * 0.08}s` }}
+                  dangerouslySetInnerHTML={{ __html: item.svg }}
                 />
               ))}
             </span>
