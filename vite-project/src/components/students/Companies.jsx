@@ -10,40 +10,87 @@ const companyLogos = [
 ];
 
 const Companies = () => {
-  const [index, setIndex] = useState(0);
-  const visibleCount = 4; // logos visible at once on large screens
-  const intervalRef = useRef();
+  const carouselRef = useRef();
+  const [isDragging, setIsDragging] = useState(false);
+  const [startX, setStartX] = useState(0);
+  const [scrollLeft, setScrollLeft] = useState(0);
 
+  // Continuous auto-scroll
   useEffect(() => {
-    intervalRef.current = setInterval(() => {
-      setIndex(prev => (prev + 1) % companyLogos.length);
-    }, 2200);
-    return () => clearInterval(intervalRef.current);
-  }, []);
-
-  // For small screens, show all logos in a row
-  const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
-  let logosToShow = companyLogos;
-  if (!isMobile) {
-    // Carousel logic for desktop
-    logosToShow = [];
-    for (let i = 0; i < visibleCount; i++) {
-      logosToShow.push(companyLogos[(index + i) % companyLogos.length]);
+    const carousel = carouselRef.current;
+    let frame;
+    let lastTime = performance.now();
+    function animate(time) {
+      if (!isDragging) {
+        const delta = (time - lastTime) * 0.08; // speed
+        carousel.scrollLeft += delta;
+        if (carousel.scrollLeft >= carousel.scrollWidth - carousel.offsetWidth) {
+          carousel.scrollLeft = 0;
+        }
+      }
+      lastTime = time;
+      frame = requestAnimationFrame(animate);
     }
-  }
+    frame = requestAnimationFrame(animate);
+    return () => cancelAnimationFrame(frame);
+  }, [isDragging]);
+
+  // Touch/drag to scroll
+  const handleMouseDown = (e) => {
+    setIsDragging(true);
+    setStartX(e.pageX - carouselRef.current.offsetLeft);
+    setScrollLeft(carouselRef.current.scrollLeft);
+  };
+  const handleMouseMove = (e) => {
+    if (!isDragging) return;
+    e.preventDefault();
+    const x = e.pageX - carouselRef.current.offsetLeft;
+    const walk = (x - startX) * 1.5;
+    carouselRef.current.scrollLeft = scrollLeft - walk;
+  };
+  const handleMouseUp = () => setIsDragging(false);
+  const handleMouseLeave = () => setIsDragging(false);
+
+  // Touch events for mobile
+  const handleTouchStart = (e) => {
+    setIsDragging(true);
+    setStartX(e.touches[0].pageX - carouselRef.current.offsetLeft);
+    setScrollLeft(carouselRef.current.scrollLeft);
+  };
+  const handleTouchMove = (e) => {
+    if (!isDragging) return;
+    const x = e.touches[0].pageX - carouselRef.current.offsetLeft;
+    const walk = (x - startX) * 1.5;
+    carouselRef.current.scrollLeft = scrollLeft - walk;
+  };
+  const handleTouchEnd = () => setIsDragging(false);
+
+  // Duplicate logos for seamless loop
+  const logos = [...companyLogos, ...companyLogos];
 
   return (
     <div className="pt-16">
       <p className='text-base text-gray-500 mb-4'>Trusted by</p>
       <div className='overflow-hidden w-full md:px-0 px-2'>
-        <div className='carousel-track gap-6 md:gap-16 flex items-center justify-center md:mt-10 mt-5'>
-          {logosToShow.map((logo, i) => (
+        <div
+          ref={carouselRef}
+          className='carousel-track gap-6 md:gap-16 flex items-center justify-center md:mt-10 mt-5 select-none'
+          style={{cursor: isDragging ? 'grabbing' : 'grab'}}
+          onMouseDown={handleMouseDown}
+          onMouseMove={handleMouseMove}
+          onMouseUp={handleMouseUp}
+          onMouseLeave={handleMouseLeave}
+          onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
+          onTouchEnd={handleTouchEnd}
+        >
+          {logos.map((logo, i) => (
             <img
               key={i}
               src={logo.src}
               alt={logo.alt}
               className='w-20 md:w-28 flex-shrink-0'
-              style={{marginRight: i === logosToShow.length - 1 ? 0 : undefined}}
+              style={{marginRight: i === logos.length - 1 ? 0 : undefined}}
             />
           ))}
         </div>

@@ -39,7 +39,7 @@ const Hero = () => {
 
   return (
     <div className='flex flex-col items-center justify-center w-full md:pt-36 pt-20 px-7 md:px-0 space-y-7 text-center bg-gradient-to-b from-cyan-100/70' >
-      <h1 className='md:text-5xl text-3xl font-extrabold text-gray-800 max-w-3xl mx-auto relative' style={{lineHeight:'1.2'}}> 
+      <h1 className='md:text-6xl text-3xl font-extrabold text-gray-800 max-w-3xl mx-auto relative' style={{lineHeight:'1.15'}}> 
         <span
           className={`empower-animate${empowerHovered ? ' empower-hovered' : ''}`}
           onMouseEnter={() => setEmpowerHovered(true)}
@@ -72,18 +72,16 @@ const Hero = () => {
         </span>
         <img src={assets.sketch} alt='sketch' className='md:block hidden absolute -bottom-7 right-0' />
       </h1>
-      <p className='md:block hidden text-lg font-semibold text-gray-600 max-w-2xl mx-auto'>We bring together world class instructor, interactive content and a sportive community to help you achieve your personal and professional goals</p>
-      <p className='md:hidden text-base font-semibold text-gray-600 max-w-sm mx-auto'>We bring together world class instructor, interactive content and a sportive community to help you achieve your personal and professional goals</p>
+      <p className='md:block hidden text-xl font-semibold text-gray-700 max-w-2xl mx-auto'>We bring together world class instructor, interactive content and a sportive community to help you achieve your personal and professional goals</p>
+      <p className='md:hidden text-lg font-semibold text-gray-700 max-w-sm mx-auto'>We bring together world class instructor, interactive content and a sportive community to help you achieve your personal and professional goals</p>
       <SearchBar/>
       {/* Course List Section for Home Page */}
       {allCourses && allCourses.length > 0 && (
         <div className='w-full max-w-6xl px-4'>
-          <h2 className='text-2xl font-semibold text-gray-800 mb-6 featured-animate'>Learn More with Our Featured Courses</h2>
-          <div className='grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4'>
+          <h2 className='text-3xl font-bold text-gray-800 mb-6 featured-animate'>Learn More with Our Featured Courses</h2>
+          <div className='featured-courses-grid'>
             {allCourses.slice(0, 4).map((course, index) => (
-              <div className='featured-animate' style={{animationDelay: `${0.3 + index * 0.1}s`}} key={index}>
-                <CourseCard course={course} />
-              </div>
+              <CourseCard key={index} course={course} animationDelay={`${0.3 + index * 0.1}s`} />
             ))}
           </div>
           <div className='text-center mt-6'>

@@ -175,3 +175,50 @@ display: none;
     transform: translateY(0) scale(1);
   }
 }
+
+/* --- Course card entrance and hover animation --- */
+.course-card-animate {
+  opacity: 0;
+  transform: translateY(40px) scale(0.97);
+  animation: fadeUpIn 0.8s cubic-bezier(0.4,0,0.2,1) 0.2s forwards;
+  transition: transform 0.25s cubic-bezier(0.4,0,0.2,1), box-shadow 0.25s;
+}
+.course-card-animate:hover {
+  transform: translateY(-4px) scale(1.04);
+  box-shadow: 0 8px 32px 0 rgba(59,130,246,0.12), 0 1.5px 6px 0 rgba(0,0,0,0.04);
+  z-index: 2;
+}
+
+/* --- Fixed course card sizing --- */
+.course-card-fixed {
+  min-width: 260px;
+  max-width: 320px;
+  min-height: 340px;
+  max-height: 400px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  background: #fff;
+}
+
+/* --- Grid alignment for course cards --- */
+.featured-courses-grid {
+  display: grid;
+  grid-template-columns: repeat(1, minmax(0, 1fr));
+  gap: 1.5rem;
+}
+@media (min-width: 640px) {
+  .featured-courses-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@media (min-width: 768px) {
+  .featured-courses-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+@media (min-width: 1024px) {
+  .featured-courses-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
