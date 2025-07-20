@@ -167,11 +167,12 @@ const Hero = () => {
             </div>
           </div>
         )}
-        {/* 3D Robot Shark Model as background */}
+        {/* 3D Robot Shark Model as background (no animation, ready for your custom movement logic) */}
         <div
-          className="robot-shark-bg robot-shark-zigzag"
+          className="robot-shark-bg"
           style={{ position: 'fixed', left: 0, top: 0, width: '100vw', height: '100vh', zIndex: 0, pointerEvents: 'none', overflow: 'hidden' }}
         >
+          {/* To add your own movement logic, update the style or use JS here */}
           <iframe
             title="Marin the Robot Shark"
             src="https://sketchfab.com/models/3fa82b4978de454789fd705ecbbc214c/embed?autostart=1&ui_theme=dark&dnt=1&autospin=0.5&ui_controls=0&ui_infos=0&ui_watermark=0&transparent=1"
