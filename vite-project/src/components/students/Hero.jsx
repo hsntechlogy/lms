@@ -17,10 +17,10 @@ const Hero = () => {
 <p  className='md:hidden text-gray-500 max-w-sm mx-auto' >We bring together world class instructor, interactive content and a sportive community to help you achieve your personal and professional goals  </p>
 <SearchBar/>
 
-      {/* Featured Courses Section */}
+      {/* Course List Section for Home Page */}
       {allCourses && allCourses.length > 0 && (
         <div className='w-full max-w-6xl px-4'>
-          <h2 className='text-2xl font-semibold text-gray-800 mb-6'>Get Started with Our Featured Courses</h2>
+          <h2 className='text-2xl font-semibold text-gray-800 mb-6'>Learn More with Our Featured Courses</h2>
           <div className='grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4'>
             {allCourses.slice(0, 4).map((course, index) => (
               <CourseCard key={index} course={course} />

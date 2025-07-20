@@ -3,7 +3,6 @@ import React, { useContext } from 'react';
 import { Link } from 'react-router-dom';
 import { assets } from '../../assets/assets';
 import { AppContext } from '../../context/AppContext';
-import CourseCard from './CourseCard';
 
 const Footer = () => {
   const { allCourses } = useContext(AppContext);
@@ -58,7 +57,7 @@ const Footer = () => {
             </ul>
         </div>
         <div className='flex flex-col items-start w-full'>
-          <h2 className='font-semibold text-white mb-5'>Featured Courses</h2>
+          <h2 className='font-semibold text-white mb-5'>Courses</h2>
           <div className='grid grid-cols-1 gap-3'>
             {allCourses && allCourses.slice(0, 3).map((course, index) => (
               <div key={index} className='flex items-center gap-3 p-2 bg-gray-800 rounded'>
