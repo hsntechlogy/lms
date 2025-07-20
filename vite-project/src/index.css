@@ -36,3 +36,89 @@ display: none;
 .rich-text ul { margin-left: 30px; list-style-type: disc; }
 
 .rich-text li { margin-bottom: 8px; }
+
+/* --- Empower bounceOut animation --- */
+.bounceOut {
+  -webkit-animation-name: bounceOut;
+  animation-name: bounceOut;
+  -webkit-animation-duration: 1s;
+  animation-duration: 1s;
+  -webkit-animation-fill-mode: both;
+  animation-fill-mode: both;
+}
+@-webkit-keyframes bounceOut {
+  20% {
+    -webkit-transform: scale3d(.9, .9, .9);
+    transform: scale3d(.9, .9, .9);
+  }
+  50%, 55% {
+    opacity: 1;
+    -webkit-transform: scale3d(1.1, 1.1, 1.1);
+    transform: scale3d(1.1, 1.1, 1.1);
+  }
+  100% {
+    opacity: 0;
+    -webkit-transform: scale3d(.3, .3, .3);
+    transform: scale3d(.3, .3, .3);
+  }
+}
+@keyframes bounceOut {
+  20% {
+    -webkit-transform: scale3d(.9, .9, .9);
+    transform: scale3d(.9, .9, .9);
+  }
+  50%, 55% {
+    opacity: 1;
+    -webkit-transform: scale3d(1.1, 1.1, 1.1);
+    transform: scale3d(1.1, 1.1, 1.1);
+  }
+  100% {
+    opacity: 0;
+    -webkit-transform: scale3d(.3, .3, .3);
+    transform: scale3d(.3, .3, .3);
+  }
+}
+
+/* --- Empower circle --- */
+.empower-circle {
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: rgba(59,130,246,0.15); /* blue-600, faded */
+  z-index: 0;
+  pointer-events: none;
+  transition: box-shadow 0.3s;
+}
+.empower-hovered .empower-circle {
+  animation: bounceOut 1s both;
+}
+
+/* --- Money rain animation --- */
+.money-rain {
+  position: absolute;
+  left: 50%;
+  top: 100%;
+  transform: translateX(-50%);
+  pointer-events: none;
+  z-index: 10;
+}
+.money-coin {
+  width: 32px;
+  height: 32px;
+  position: absolute;
+  left: 0;
+  animation: money-fall 1.2s linear forwards, money-spin 1.2s linear forwards;
+}
+@keyframes money-fall {
+  0% { top: 0; opacity: 1; }
+  80% { opacity: 1; }
+  100% { top: 120px; opacity: 0; }
+}
+@keyframes money-spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
