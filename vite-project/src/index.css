@@ -335,3 +335,30 @@ display: none;
   30% { transform: translateX(-50%) translateY(-10px) scale(1.04); }
   60% { transform: translateX(-50%) translateY(8px) scale(0.98); }
 }
+
+/* --- Hover animation for testimonials heading/para --- */
+.testimonials-animated-modern-hover {
+  animation: testimonialsFadeBounceHover 0.7s cubic-bezier(0.4,0,0.2,1);
+}
+@keyframes testimonialsFadeBounceHover {
+  0% { transform: scale(1) translateY(0); }
+  40% { transform: scale(1.08) translateY(-8px); }
+  60% { transform: scale(0.96) translateY(2px); }
+  100% { transform: scale(1) translateY(0); }
+}
+
+/* --- Tech models background animation --- */
+.tech-bg-model {
+  opacity: 0.18;
+  filter: blur(0.5px);
+  animation: techModelFloat 12s ease-in-out infinite alternate;
+}
+.tech-bg-model:nth-child(2) { animation-delay: 2s; animation-duration: 14s; }
+.tech-bg-model:nth-child(3) { animation-delay: 4s; animation-duration: 16s; }
+.tech-bg-model:nth-child(4) { animation-delay: 6s; animation-duration: 18s; }
+@keyframes techModelFloat {
+  0% { transform: translateY(0) scale(1) rotate(0deg); }
+  30% { transform: translateY(-18px) scale(1.04) rotate(-2deg); }
+  60% { transform: translateY(12px) scale(0.98) rotate(2deg); }
+  100% { transform: translateY(0) scale(1) rotate(0deg); }
+}
