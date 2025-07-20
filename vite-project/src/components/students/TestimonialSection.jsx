@@ -107,8 +107,8 @@ const TestimonialsSection = () => {
           transform: `translate(-50%, -50%)`,
         }}
       ></div>
-      <h2 className="text-4xl md:text-5xl text-center font-extrabold text-gray-800 testimonials-animated-modern">Testimonials</h2>
-      <p className="md:text-2xl text-lg text-center font-semibold text-gray-700 mt-4 testimonials-animated-modern">
+      <h2 className="text-4xl md:text-5xl text-center font-extrabold text-gray-800 testimonials-animated-modern mt-8 mb-4">Testimonials</h2>
+      <p className="md:text-2xl text-lg text-center font-semibold text-gray-700 mt-4 mb-8 testimonials-animated-modern">
         Hear from our learners as they share their journey of transformation,
         success and how our <br /> platform has made a difference in their lives
       </p>

@@ -49,13 +49,15 @@ const Hero = () => {
   const fitRef = useRef();
   const [modelPrompt, setModelPrompt] = useState(null);
   const [mascotX, setMascotX] = useState(50); // percent of viewport width
-
-  // Mouse move handler for mascot
+  const [sharkX, setSharkX] = useState(50); // percent of viewport width
+  // Mouse move handler for robot shark
   React.useEffect(() => {
     const handleMouseMove = (e) => {
-      if (window.scrollY > window.innerHeight) return; // Only in first 100vh
+      // Only move if not over an input, button, or textarea
+      const el = document.elementFromPoint(e.clientX, e.clientY);
+      if (el && (el.tagName === 'INPUT' || el.tagName === 'BUTTON' || el.tagName === 'TEXTAREA' || el.closest('form, .search-bar, .searchbar, .SearchBar'))) return;
       const x = (e.clientX / window.innerWidth) * 100;
-      setMascotX(x);
+      setSharkX(x);
     };
     window.addEventListener('mousemove', handleMouseMove);
     return () => window.removeEventListener('mousemove', handleMouseMove);
@@ -172,10 +174,10 @@ const Hero = () => {
         >
           <iframe
             title="Marin the Robot Shark"
-            src="https://sketchfab.com/models/3fa82b4978de454789fd705ecbbc214c/embed?autostart=1&ui_theme=dark&dnt=1&autospin=0.5"
+            src="https://sketchfab.com/models/3fa82b4978de454789fd705ecbbc214c/embed?autostart=1&ui_theme=dark&dnt=1&autospin=0.5&ui_controls=0&ui_infos=0&ui_watermark=0&transparent=1"
             frameBorder="0"
             allow="autoplay; fullscreen; vr"
-            style={{ width: '600px', height: '400px', border: 'none', position: 'absolute', left: '50%', top: '60%', transform: 'translate(-50%, -50%) scale(1.1)', pointerEvents: 'none', opacity: 0.85, animation: 'robotSharkFloat 7s ease-in-out infinite alternate' }}
+            style={{ width: '600px', height: '400px', border: 'none', position: 'absolute', left: `${sharkX}%`, top: '60%', transform: 'translate(-50%, -50%) scale(1.1)', pointerEvents: 'none', opacity: 0.85, background: 'transparent', animation: 'robotSharkFloat 7s ease-in-out infinite alternate' }}
           ></iframe>
         </div>
       </div>
