@@ -79,8 +79,10 @@ const Hero = () => {
             </span>
           )}
         </span>
-        <img src={assets.sketch} alt='sketch' className='md:block hidden absolute -bottom-7 right-0' />
       </h1>
+      <div className="w-full flex justify-center">
+        <img src={assets.sketch} alt='sketch' className='md:block hidden mt-8 mb-2' style={{maxWidth:'180px'}} />
+      </div>
       <p className='md:block hidden text-xl font-semibold text-gray-700 max-w-2xl mx-auto'>We bring together world class instructor, interactive content and a sportive community to help you achieve your personal and professional goals</p>
       <p className='md:hidden text-lg font-semibold text-gray-700 max-w-sm mx-auto'>We bring together world class instructor, interactive content and a sportive community to help you achieve your personal and professional goals</p>
       <SearchBar/>

@@ -68,13 +68,16 @@ const Companies = () => {
   // Duplicate logos for seamless loop
   const logos = [...companyLogos, ...companyLogos, ...companyLogos];
 
+  // CSS fallback for continuous movement
+  // If JS auto-scroll fails, the .carousel-track-animate class will animate the logos
+
   return (
     <div className="pt-16">
       <p className='text-base text-gray-500 mb-4'>Trusted by</p>
       <div className='overflow-hidden w-full md:px-0 px-2'>
         <div
           ref={carouselRef}
-          className='carousel-track gap-6 md:gap-16 flex items-center md:mt-10 mt-5 select-none'
+          className='carousel-track carousel-track-animate gap-6 md:gap-16 flex items-center md:mt-10 mt-5 select-none'
           style={{cursor: isDragging ? 'grabbing' : 'grab', overflowX: 'auto', scrollBehavior: 'smooth'}}
           onMouseDown={handleMouseDown}
           onMouseMove={handleMouseMove}
