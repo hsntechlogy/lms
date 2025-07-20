@@ -1,5 +1,5 @@
 import React from 'react';
-import { Route, Routes, useMatch } from 'react-router-dom';
+import { Route, Routes, useMatch, Navigate } from 'react-router-dom';
 
 import CourseList from './pages/students/CoursesList';
 import CourseDetails from './pages/students/CourseDetails';
@@ -9,7 +9,6 @@ import Payment from './pages/students/Payment';
 import Loading from './components/students/Loading';
 import LiveClasses from './pages/students/LiveClasses';
 import PrivacyPolicy from './pages/students/PrivacyPolicy';
-import Courses from './pages/students/Courses';
 import Notifications from './pages/students/Notifications';
 import { ToastContainer } from 'react-toastify';
 import Educator from './pages/educator/Educator';
@@ -37,7 +36,7 @@ const App = () => {
         <Route path="/" element={<Home />} />
         <Route path="/course-list" element={<CourseList />} />
         <Route path="/course-list/:input" element={<CourseList />} />
-        <Route path="/courses" element={<Courses />} />
+        <Route path="/courses" element={<Navigate to="/course-list" replace />} />
         <Route path="/course/:id" element={<CourseDetails />} />
         <Route path="/payment/:id" element={<Payment />} />
         <Route path="/my-enrollment" element={<MyEnrollments />} />
