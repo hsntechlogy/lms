@@ -83,9 +83,10 @@ const TestimonialsSection = () => {
   const displayedTestimonials = canSeeAll && showAll ? testimonials : testimonials.slice(0, 3);
 
   return (
-    <div className="pb-14 px-8 md:px-0">
-      <h2 className="text-3xl text-center font-medium text-gray-800">Testimonials</h2>
-      <p className="md:text-base text-center text-gray-500 mt-3">
+    <div className="pb-14 px-8 md:px-0 relative">
+      <div className="testimonials-circle-bg"></div>
+      <h2 className="text-3xl text-center font-medium text-gray-800 testimonials-animated">Testimonials</h2>
+      <p className="md:text-base text-center text-gray-500 mt-3 testimonials-animated">
         Hear from our learners as they share their journey of transformation,
         success and how our <br /> platform has made a difference in their lives
       </p>

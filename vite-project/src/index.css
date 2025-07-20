@@ -262,3 +262,44 @@ display: none;
     transform: scale(0.9) translateY(-110px) rotate(30deg);
   }
 }
+
+/* --- Animated circle for testimonials heading/para --- */
+.testimonials-circle-bg {
+  position: absolute;
+  left: 50%;
+  top: 0.5rem;
+  transform: translateX(-50%);
+  width: 340px;
+  height: 180px;
+  background: radial-gradient(circle at 60% 40%, #a5b4fc 60%, #f0f9ff 100%);
+  border-radius: 50%;
+  z-index: 0;
+  opacity: 0.18;
+  pointer-events: none;
+}
+
+/* --- Heading/para animation --- */
+.testimonials-animated {
+  display: inline-block;
+  animation: testimonialsRubberBand 1.1s cubic-bezier(0.68,-0.55,0.27,1.55), testimonialsBounce 1.2s 1.1s cubic-bezier(0.68,-0.55,0.27,1.55), testimonialsRotate 1.2s 2.2s cubic-bezier(0.68,-0.55,0.27,1.55);
+}
+@keyframes testimonialsRubberBand {
+  0% { transform: scale3d(1, 1, 1); }
+  30% { transform: scale3d(1.25, 0.75, 1); }
+  40% { transform: scale3d(0.75, 1.25, 1); }
+  50% { transform: scale3d(1.15, 0.85, 1); }
+  65% { transform: scale3d(.95, 1.05, 1); }
+  75% { transform: scale3d(1.05, .95, 1); }
+  100% { transform: scale3d(1, 1, 1); }
+}
+@keyframes testimonialsBounce {
+  0%, 100% { transform: translateY(0); }
+  20% { transform: translateY(-18px); }
+  40% { transform: translateY(-8px); }
+  60% { transform: translateY(-4px); }
+  80% { transform: translateY(-2px); }
+}
+@keyframes testimonialsRotate {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(2deg); }
+}

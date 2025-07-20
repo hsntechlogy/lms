@@ -21,10 +21,10 @@ const Companies = () => {
     let frame;
     let lastTime = performance.now();
     function animate(time) {
-      if (!isDragging) {
+      if (!isDragging && carousel) {
         const delta = (time - lastTime) * 0.08; // speed
         carousel.scrollLeft += delta;
-        if (carousel.scrollLeft >= carousel.scrollWidth - carousel.offsetWidth) {
+        if (carousel.scrollLeft >= carousel.scrollWidth / 2) {
           carousel.scrollLeft = 0;
         }
       }
@@ -66,7 +66,7 @@ const Companies = () => {
   const handleTouchEnd = () => setIsDragging(false);
 
   // Duplicate logos for seamless loop
-  const logos = [...companyLogos, ...companyLogos];
+  const logos = [...companyLogos, ...companyLogos, ...companyLogos];
 
   return (
     <div className="pt-16">
@@ -74,8 +74,8 @@ const Companies = () => {
       <div className='overflow-hidden w-full md:px-0 px-2'>
         <div
           ref={carouselRef}
-          className='carousel-track gap-6 md:gap-16 flex items-center justify-center md:mt-10 mt-5 select-none'
-          style={{cursor: isDragging ? 'grabbing' : 'grab'}}
+          className='carousel-track gap-6 md:gap-16 flex items-center md:mt-10 mt-5 select-none'
+          style={{cursor: isDragging ? 'grabbing' : 'grab', overflowX: 'auto', scrollBehavior: 'smooth'}}
           onMouseDown={handleMouseDown}
           onMouseMove={handleMouseMove}
           onMouseUp={handleMouseUp}
