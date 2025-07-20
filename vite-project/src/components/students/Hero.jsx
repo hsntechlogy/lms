@@ -15,11 +15,16 @@ const burstItems = [
   { svg: coinSVG, left: '82%' },
 ];
 
-const techModels = [
-  { svg: `<svg width="60" height="60" viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="10" y="20" width="40" height="20" rx="6" fill="#6366F1"/><rect x="18" y="28" width="24" height="4" rx="2" fill="#A5B4FC"/><rect x="24" y="32" width="12" height="2" rx="1" fill="#818CF8"/></svg>`, style: { left: '8%', top: '18%', animationDelay: '0s' } },
-  { svg: `<svg width="60" height="60" viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="30" cy="30" r="20" fill="#F59E42"/><rect x="22" y="28" width="16" height="4" rx="2" fill="#FDE68A"/><circle cx="30" cy="30" r="8" fill="#FBBF24"/></svg>`, style: { left: '70%', top: '12%', animationDelay: '0.7s' } },
-  { svg: `<svg width="60" height="60" viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="16" y="16" width="28" height="28" rx="8" fill="#10B981"/><rect x="24" y="24" width="12" height="12" rx="3" fill="#6EE7B7"/></svg>`, style: { left: '20%', top: '70%', animationDelay: '1.2s' } },
-  { svg: `<svg width="60" height="60" viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg"><ellipse cx="30" cy="40" rx="14" ry="8" fill="#3B82F6"/><rect x="22" y="18" width="16" height="16" rx="8" fill="#60A5FA"/><rect x="26" y="26" width="8" height="6" rx="3" fill="#1E40AF"/></svg>`, style: { left: '80%', top: '65%', animationDelay: '1.7s' } },
+const astronautSVG = `<svg width="70" height="70" viewBox="0 0 70 70" fill="none" xmlns="http://www.w3.org/2000/svg"><ellipse cx="35" cy="60" rx="18" ry="7" fill="#e5e7eb"/><circle cx="35" cy="32" r="18" fill="#f3f4f6" stroke="#d1d5db" stroke-width="2"/><ellipse cx="35" cy="32" rx="10" ry="10" fill="#fff" stroke="#a1a1aa" stroke-width="2"/><rect x="30" y="42" width="10" height="12" rx="5" fill="#e5e7eb"/><rect x="28" y="54" width="14" height="6" rx="3" fill="#d1d5db"/></svg>`;
+const rockSVG = `<svg width="60" height="60" viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg"><ellipse cx="30" cy="50" rx="18" ry="8" fill="#f3f4f6"/><ellipse cx="30" cy="38" rx="14" ry="10" fill="#e5e7eb"/><ellipse cx="30" cy="38" rx="8" ry="6" fill="#d1d5db"/></svg>`;
+const rocketSVG = `<svg width="60" height="60" viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="28" y="10" width="4" height="28" rx="2" fill="#f3f4f6"/><polygon points="30,4 36,16 24,16" fill="#e5e7eb"/><ellipse cx="30" cy="40" rx="8" ry="10" fill="#f3f4f6"/><ellipse cx="30" cy="40" rx="4" ry="6" fill="#fff"/></svg>`;
+const satelliteSVG = `<svg width="60" height="60" viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="26" y="26" width="8" height="8" rx="2" fill="#f3f4f6"/><rect x="18" y="18" width="6" height="24" rx="2" fill="#e5e7eb"/><rect x="36" y="18" width="6" height="24" rx="2" fill="#e5e7eb"/><rect x="10" y="28" width="8" height="4" rx="2" fill="#d1d5db"/><rect x="42" y="28" width="8" height="4" rx="2" fill="#d1d5db"/></svg>`;
+
+const spaceModels = [
+  { svg: astronautSVG, style: { left: '8%', top: '18%', animationDelay: '0s' }, prompt: 'Secure your future with us!' },
+  { svg: rockSVG, style: { left: '70%', top: '12%', animationDelay: '0.7s' }, prompt: 'Get ready to dive into the $10 trillion market.' },
+  { svg: rocketSVG, style: { left: '20%', top: '70%', animationDelay: '1.2s' }, prompt: 'Book your ride to a stable future.' },
+  { svg: satelliteSVG, style: { left: '80%', top: '65%', animationDelay: '1.7s' }, prompt: 'Stay connected, stay ahead.' },
 ];
 
 const Hero = () => {
@@ -28,6 +33,7 @@ const Hero = () => {
   const [moneyRain, setMoneyRain] = useState(false);
   const moneyRainTimeout = useRef();
   const fitRef = useRef();
+  const [modelPrompt, setModelPrompt] = useState(null);
 
   // Trigger money rain animation
   const handleMoneyHover = () => {
@@ -56,15 +62,24 @@ const Hero = () => {
   return (
     <div className="relative w-full">
       <div className="absolute inset-0 w-full h-full pointer-events-none z-0" style={{zIndex: 0}}>
-        {techModels.map((model, i) => (
+        {spaceModels.map((model, i) => (
           <span
             key={i}
             className="tech-bg-model"
-            style={{ ...model.style, position: 'absolute', animationDelay: model.style.animationDelay, zIndex: 0, pointerEvents: 'none' }}
+            style={{ ...model.style, position: 'absolute', animationDelay: model.style.animationDelay, zIndex: 0, pointerEvents: 'auto', cursor: 'pointer' }}
+            onClick={() => setModelPrompt(model.prompt)}
             dangerouslySetInnerHTML={{ __html: model.svg }}
           />
         ))}
       </div>
+      {modelPrompt && (
+        <div className="fixed inset-0 flex items-center justify-center z-50 bg-black/40" onClick={() => setModelPrompt(null)}>
+          <div className="bg-white rounded-xl shadow-lg px-8 py-6 text-xl font-semibold text-gray-800 max-w-md text-center animate-pop">
+            {modelPrompt}
+            <div className="mt-4 text-sm text-blue-600">Click anywhere to close</div>
+          </div>
+        </div>
+      )}
       <div className='flex flex-col items-center justify-center w-full md:pt-36 pt-20 px-7 md:px-0 space-y-7 text-center bg-gradient-to-b from-cyan-100/70 relative' >
         <h1 className='md:text-6xl text-3xl font-extrabold text-gray-800 max-w-3xl mx-auto relative' style={{lineHeight:'1.15'}}> 
           <span

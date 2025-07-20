@@ -362,3 +362,13 @@ display: none;
   60% { transform: translateY(12px) scale(0.98) rotate(2deg); }
   100% { transform: translateY(0) scale(1) rotate(0deg); }
 }
+
+/* --- Pop-in animation for model prompt modal --- */
+.animate-pop {
+  animation: popIn 0.4s cubic-bezier(0.4,0,0.2,1);
+}
+@keyframes popIn {
+  0% { opacity: 0; transform: scale(0.7); }
+  70% { opacity: 1; transform: scale(1.08); }
+  100% { opacity: 1; transform: scale(1); }
+}
