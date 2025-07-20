@@ -161,14 +161,7 @@ const LiveClasses = () => {
                     <p className="text-gray-600 text-sm mb-4">
                       Instructor: {course.educator?.name || 'Unknown'}
                     </p>
-                    <button
-                      onClick={() => {
-                        toast.info('Contact your instructor for live class details');
-                      }}
-                      className="w-full bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700 transition-colors text-sm"
-                    >
-                      Request Live Class
-                    </button>
+
                   </div>
                 ))}
               </div>
