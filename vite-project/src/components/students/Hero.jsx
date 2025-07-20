@@ -61,26 +61,26 @@ const Hero = () => {
 
   return (
     <div className="relative w-full">
-      <div className="absolute inset-0 w-full h-full pointer-events-none z-0" style={{zIndex: 0}}>
-        {spaceModels.map((model, i) => (
-          <span
-            key={i}
-            className="tech-bg-model"
-            style={{ ...model.style, position: 'absolute', animationDelay: model.style.animationDelay, zIndex: 0, pointerEvents: 'auto', cursor: 'pointer' }}
-            onClick={() => setModelPrompt(model.prompt)}
-            dangerouslySetInnerHTML={{ __html: model.svg }}
-          />
-        ))}
-      </div>
-      {modelPrompt && (
-        <div className="fixed inset-0 flex items-center justify-center z-50 bg-black/40" onClick={() => setModelPrompt(null)}>
-          <div className="bg-white rounded-xl shadow-lg px-8 py-6 text-xl font-semibold text-gray-800 max-w-md text-center animate-pop">
-            {modelPrompt}
-            <div className="mt-4 text-sm text-blue-600">Click anywhere to close</div>
-          </div>
-        </div>
-      )}
       <div className='flex flex-col items-center justify-center w-full md:pt-36 pt-20 px-7 md:px-0 space-y-7 text-center bg-gradient-to-b from-cyan-100/70 relative' >
+        <div className="absolute inset-0 w-full h-full pointer-events-auto z-0" style={{zIndex: 0}}>
+          {spaceModels.map((model, i) => (
+            <span
+              key={i}
+              className="tech-bg-model tech-bg-model-debug"
+              style={{ ...model.style, position: 'absolute', animationDelay: model.style.animationDelay, zIndex: 0, pointerEvents: 'auto', cursor: 'pointer', opacity: 0.45, filter: 'drop-shadow(0 2px 8px #fff)' }}
+              onClick={() => setModelPrompt(model.prompt)}
+              dangerouslySetInnerHTML={{ __html: model.svg }}
+            />
+          ))}
+        </div>
+        {modelPrompt && (
+          <div className="fixed inset-0 flex items-center justify-center z-50 bg-black/40" onClick={() => setModelPrompt(null)}>
+            <div className="bg-white rounded-xl shadow-lg px-8 py-6 text-xl font-semibold text-gray-800 max-w-md text-center animate-pop">
+              {modelPrompt}
+              <div className="mt-4 text-sm text-blue-600">Click anywhere to close</div>
+            </div>
+          </div>
+        )}
         <h1 className='md:text-6xl text-3xl font-extrabold text-gray-800 max-w-3xl mx-auto relative' style={{lineHeight:'1.15'}}> 
           <span
             className={`empower-animate${empowerHovered ? ' empower-hovered' : ''}`}

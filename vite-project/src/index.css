@@ -363,6 +363,12 @@ display: none;
   100% { transform: translateY(0) scale(1) rotate(0deg); }
 }
 
+/* --- Debug border for tech models --- */
+.tech-bg-model-debug {
+  border: 2px dashed #a5b4fc;
+  border-radius: 50%;
+}
+
 /* --- Pop-in animation for model prompt modal --- */
 .animate-pop {
   animation: popIn 0.4s cubic-bezier(0.4,0,0.2,1);
