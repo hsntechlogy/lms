@@ -10,9 +10,9 @@ function MarinRobotShark(props) {
 export default function ModelViewerWithSearch() {
   return (
     <div style={{ display: "flex", width: "100vw", height: "100vh", overflow: "hidden", background: "#f9f9f9" }}>
-      {/* 3D Model on the left, static, flush with left edge */}
-      <div style={{ flex: "0 0 40%", height: "100vh", pointerEvents: "none", position: "relative", zIndex: 1, display: 'flex', alignItems: 'flex-start', justifyContent: 'flex-start' }}>
-        <Canvas camera={{ position: [0, 2, 8], fov: 50 }} style={{ background: 'transparent', width: '100%', height: '100%' }}>
+      {/* Left: 3D Model viewer, no pointer events, no overlays */}
+      <div style={{ flex: '0 0 40%', height: '100vh', pointerEvents: 'none', background: '#f9f9f9' }}>
+        <Canvas camera={{ position: [0, 2, 8], fov: 50 }} style={{ width: '100%', height: '100%' }}>
           <ambientLight intensity={0.7} />
           <directionalLight position={[10, 10, 5]} intensity={1} />
           <Suspense fallback={null}>
@@ -20,16 +20,18 @@ export default function ModelViewerWithSearch() {
           </Suspense>
         </Canvas>
       </div>
-      {/* Search Bar and content on the right */}
-      <div style={{ flex: 1, height: "100vh", display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center", zIndex: 10, position: "relative" }}>
+      {/* Right: Search bar, always clickable, no overlap */}
+      <div style={{ flex: 1, height: '100vh', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', background: '#fff' }}>
         <div
           style={{
             width: 400,
-            background: "rgba(255,255,255,0.95)",
+            background: "rgba(255,255,255,1)",
             borderRadius: 8,
             boxShadow: "0 2px 8px rgba(0,0,0,0.15)",
             padding: 12,
             pointerEvents: "auto",
+            zIndex: 1,
+            position: 'relative',
           }}
         >
           <input
