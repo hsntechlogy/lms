@@ -20,6 +20,7 @@ import Dashboard from './pages/educator/Dashboard';
 import AdminDashboard from './pages/admin/AdminDashboard';
 
 import Navbar from './components/students/Navbar';
+import ModelViewerWithSearch from './components/ModelViewerWithSearch';
 import "quill/dist/quill.snow.css";
 
 const App = () => {
@@ -44,6 +45,8 @@ const App = () => {
         <Route path="/privacy-policy" element={<PrivacyPolicy />} />
         <Route path="/notifications" element={<Notifications />} />
         <Route path="/loading/:path" element={<Loading />} />
+        {/* 3D Model Viewer Route */}
+        <Route path="/model-viewer" element={<ModelViewerWithSearch />} />
 
         {/* Educator Routes */}
         <Route path="/educator" element={<Educator />}>
