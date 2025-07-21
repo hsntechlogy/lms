@@ -20,7 +20,7 @@ const LiveClasses = () => {
     setIsJoining(true);
     
     // Construct Zoom meeting URL
-    const zoomUrl = `https://zoom.us/j/${meetingId}`;
+    let zoomUrl = `https://zoom.us/j/${meetingId}`;
     if (password) {
       zoomUrl += `?pwd=${password}`;
     }
