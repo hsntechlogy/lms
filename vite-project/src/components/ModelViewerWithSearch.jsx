@@ -10,32 +10,31 @@ function MarinRobotShark(props) {
 export default function ModelViewerWithSearch() {
   return (
     <div style={{ display: "flex", width: "100vw", height: "100vh", overflow: "hidden", background: "#f9f9f9" }}>
-      {/* Left: 3D Model viewer, no pointer events, no overlays */}
-      <div style={{ flex: '0 0 40%', height: '100vh', pointerEvents: 'none', background: '#f9f9f9', position: 'relative' }}>
+      {/* Left: 3D Model viewer, flush with left and top, no overlays */}
+      <div style={{ flex: '0 0 40%', height: '100vh', pointerEvents: 'none', background: '#f9f9f9', position: 'relative', margin: 0, padding: 0 }}>
         <Canvas 
-          camera={{ position: [0, 2, 8], fov: 50 }} 
-          style={{ width: '100%', height: '100%', position: 'absolute', left: 0, top: 0 }}
+          camera={{ position: [0, 3, 10], fov: 50 }} 
+          style={{ width: '100%', height: '100%', position: 'absolute', left: 0, top: 0, margin: 0, padding: 0 }}
         >
           <ambientLight intensity={0.7} />
           <directionalLight position={[10, 10, 5]} intensity={1} />
           <Suspense fallback={null}>
-            <MarinRobotShark position={[0, -1, 0]} rotation={[0, Math.PI / 4, 0]} />
+            {/* Lower the model so legs are visible */}
+            <MarinRobotShark position={[0, -2.5, 0]} rotation={[0, Math.PI / 4, 0]} />
           </Suspense>
         </Canvas>
       </div>
 
-      {/* Right: Search bar, always clickable, no overlap */}
+      {/* Right: Search bar, centered vertically, no SVG/icon, no overlays */}
       <div style={{ 
         flex: 1, 
         height: '100vh', 
         display: 'flex', 
         flexDirection: 'column', 
-        justifyContent: 'flex-start', 
+        justifyContent: 'center', 
         alignItems: 'center', 
         background: '#fff',
-        paddingTop: '2rem',
         position: 'relative',
-        zIndex: 2
       }}>
         <div
           style={{
@@ -46,6 +45,9 @@ export default function ModelViewerWithSearch() {
             boxShadow: "0 2px 8px rgba(0,0,0,0.15)",
             padding: 12,
             pointerEvents: "auto",
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
           }}
         >
           <input
