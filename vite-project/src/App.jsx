@@ -18,19 +18,20 @@ import MyCourses from './pages/educator/MyCourses';
 import StudentsEnrolled from './pages/educator/StudentsEnrolled';
 import Dashboard from './pages/educator/Dashboard';
 import AdminDashboard from './pages/admin/AdminDashboard';
+import CleanSearchBar from './components/CleanSearchBar';
 
 import Navbar from './components/students/Navbar';
-import ModelViewerWithSearch from './components/ModelViewerWithSearch';
 import "quill/dist/quill.snow.css";
 
 const App = () => {
   const isEducatorRoute = useMatch('/educator/*');
   const isAdminRoute = useMatch('/admin/*');
+  const isSearchRoute = useMatch('/search');
 
   return (
     <div className="text-default min-h-screen bg-white">
       <ToastContainer/>
-      {!isEducatorRoute && !isAdminRoute && <Navbar />}
+      {!isEducatorRoute && !isAdminRoute && !isSearchRoute && <Navbar />}
 
       <Routes>
         {/* Student Routes */}
@@ -45,8 +46,7 @@ const App = () => {
         <Route path="/privacy-policy" element={<PrivacyPolicy />} />
         <Route path="/notifications" element={<Notifications />} />
         <Route path="/loading/:path" element={<Loading />} />
-        {/* 3D Model Viewer Route */}
-        <Route path="/model-viewer" element={<ModelViewerWithSearch />} />
+        <Route path="/search" element={<CleanSearchBar />} />
 
         {/* Educator Routes */}
         <Route path="/educator" element={<Educator />}>
