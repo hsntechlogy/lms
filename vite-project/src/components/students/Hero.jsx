@@ -25,7 +25,6 @@ const capsuleSVG = `<svg width="60" height="60" viewBox="0 0 60 60" fill="none" 
 const aiBrainSVG = `<svg width="60" height="60" viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg"><ellipse cx="30" cy="30" rx="18" ry="14" fill="#f3f4f6" stroke="#d1d5db" stroke-width="2"/><ellipse cx="30" cy="30" rx="10" ry="8" fill="#fff"/><rect x="28" y="22" width="4" height="16" rx="2" fill="#a1a1aa"/></svg>`;
 const robotSVG = `<svg width="60" height="60" viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="18" y="18" width="24" height="24" rx="8" fill="#f3f4f6" stroke="#d1d5db" stroke-width="2"/><rect x="26" y="34" width="8" height="4" rx="2" fill="#a1a1aa"/><circle cx="26" cy="28" r="2" fill="#a1a1aa"/><circle cx="34" cy="28" r="2" fill="#a1a1aa"/></svg>`;
 const trophySVG = `<svg width="60" height="60" viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="20" y="20" width="20" height="20" rx="10" fill="#f3f4f6" stroke="#fbbf24" stroke-width="2"/><rect x="28" y="40" width="4" height="8" rx="2" fill="#fbbf24"/><ellipse cx="30" cy="20" rx="10" ry="4" fill="#fde68a"/></svg>`;
-const flagSVG = `<svg width="60" height="60" viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="28" y="10" width="4" height="40" rx="2" fill="#a1a1aa"/><rect x="32" y="14" width="16" height="10" rx="2" fill="#60a5fa"/><rect x="32" y="26" width="12" height="8" rx="2" fill="#fbbf24"/></svg>`;
 const mascotSVG = `<svg width="80" height="80" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg"><ellipse cx="40" cy="70" rx="20" ry="8" fill="#e5e7eb"/><circle cx="40" cy="36" r="20" fill="#f3f4f6" stroke="#d1d5db" stroke-width="2"/><ellipse cx="40" cy="36" rx="12" ry="12" fill="#fff" stroke="#a1a1aa" stroke-width="2"/><rect x="34" y="50" width="12" height="16" rx="6" fill="#e5e7eb"/><rect x="32" y="66" width="16" height="8" rx="4" fill="#d1d5db"/><rect x="60" y="24" width="8" height="24" rx="4" fill="#f3f4f6" stroke="#d1d5db" stroke-width="2"/></svg>`;
 
 const spaceModels = [
@@ -38,7 +37,7 @@ const spaceModels = [
   { svg: aiBrainSVG, style: { left: '20%', top: '70%', animationDelay: '1.2s' }, prompt: 'Unlock your AI-powered potential.' },
   { svg: robotSVG, style: { left: '80%', top: '65%', animationDelay: '1.7s' }, prompt: 'Automate your success.' },
   { svg: trophySVG, style: { left: '45%', top: '60%', animationDelay: '2.1s' }, prompt: 'Celebrate your achievements!' },
-  { svg: flagSVG, style: { left: '55%', top: '50%', animationDelay: '2.5s' }, prompt: 'Plant your flag on new ground.' },
+  { svg: mascotSVG, style: { left: '55%', top: '50%', animationDelay: '2.5s' }, prompt: 'Plant your flag on new ground.' },
 ];
 
 const Hero = () => {
@@ -142,7 +141,6 @@ const Hero = () => {
           </span>
         </h1>
         <div className="w-full flex justify-center">
-          <img src={assets.sketch} alt='sketch' className='md:block hidden' style={{maxWidth:'180px', marginTop: 0}} />
         </div>
         <p className='md:block hidden text-xl font-semibold text-gray-700 max-w-2xl mx-auto'>We bring together world class instructor, interactive content and a sportive community to help you achieve your personal and professional goals</p>
         <p className='md:hidden text-lg font-semibold text-gray-700 max-w-sm mx-auto'>We bring together world class instructor, interactive content and a sportive community to help you achieve your personal and professional goals</p>
@@ -167,22 +165,6 @@ const Hero = () => {
             </div>
           </div>
         )}
-        {/* 3D Robot Shark Model as background (no animation, ready for your custom movement logic) */}
-        <div
-          className="robot-shark-bg"
-          style={{ position: 'fixed', left: 0, top: 0, width: '100vw', height: '100vh', zIndex: 0, pointerEvents: 'none', overflow: 'hidden' }}
-        >
-          {/* To add your own movement logic, update the style or use JS here */}
-          <iframe
-            title="Marin the Robot Shark"
-            src="https://sketchfab.com/models/3fa82b4978de454789fd705ecbbc214c/embed?autostart=1&ui_theme=dark&dnt=1&autospin=0.5&ui_controls=0&ui_infos=0&ui_watermark=0&transparent=1"
-            frameBorder="0"
-            allow="autoplay; fullscreen; vr"
-            style={{ width: '600px', height: '400px', border: 'none', position: 'absolute', left: '50%', top: '60%', transform: 'translate(-50%, -50%) scale(1.1)', pointerEvents: 'none', opacity: 0.85, background: 'transparent' }}
-          ></iframe>
-        </div>
-      </div>
-    </div>
-  );
-}
-export default Hero;
+      {/* 3D Robot Shark Model as background (now with zigzag animation) */}
+      {/* Main content, including search bar, always above 3D model */}
+      <div className='flex flex-col items-center justify-center w-full md:pt-36 pt-20 px-7 md:px-0 space-y-7 text-center bg-gradient-to-b from-cyan-100/70 relative' style={{zIndex: 100, pointerEvents: 'auto'}} >
