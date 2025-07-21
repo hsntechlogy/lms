@@ -1,16 +1,25 @@
 import React, { useRef } from "react";
-import { Canvas } from "@react-three/fiber";
-import { OrbitControls, useGLTF } from "@react-three/drei";
+import { Canvas, useFrame } from "@react-three/fiber";
+import { useGLTF } from "@react-three/drei";
 
 function MarinRobotShark(props) {
   const gltf = useGLTF("/marin_the_robot_shark_low_poly/scene.gltf");
-  // TODO: Add animation logic here if your model has animation clips or bones
-  return <primitive object={gltf.scene} {...props} />;
+  const modelRef = useRef();
+
+  // Mouse-follow logic
+  useFrame(({ mouse }) => {
+    if (modelRef.current) {
+      // Map mouse.x from [-1, 1] to [-Math.PI/4, Math.PI/4] (left/right)
+      // Map mouse.y from [-1, 1] to [-Math.PI/8, Math.PI/8] (up/down)
+      modelRef.current.rotation.y = mouse.x * Math.PI / 4;
+      modelRef.current.rotation.x = -mouse.y * Math.PI / 8;
+    }
+  });
+
+  return <primitive ref={modelRef} object={gltf.scene} {...props} />;
 }
 
 export default function ModelViewerWithSearch() {
-  const controlsRef = useRef();
-
   return (
     <div style={{ position: "relative", width: "100vw", height: "100vh" }}>
       {/* Search Bar Overlay */}
@@ -46,13 +55,7 @@ export default function ModelViewerWithSearch() {
         <ambientLight intensity={0.7} />
         <directionalLight position={[10, 10, 5]} intensity={1} />
         <MarinRobotShark position={[0, -1, 0]} />
-        {/* OrbitControls with rotation disabled */}
-        <OrbitControls
-          ref={controlsRef}
-          enableRotate={false}
-          enablePan={true}
-          enableZoom={true}
-        />
+        {/* No OrbitControls, no cube, no mouse drag/scroll */}
       </Canvas>
     </div>
   );
