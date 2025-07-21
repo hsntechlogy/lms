@@ -1,71 +1,49 @@
-import React, { useRef, useState, Suspense } from "react";
-import { Canvas, useFrame } from "@react-three/fiber";
+import React, { Suspense } from "react";
+import { Canvas } from "@react-three/fiber";
 import { useGLTF } from "@react-three/drei";
 
 function MarinRobotShark(props) {
   const gltf = useGLTF("/marin_the_robot_shark_low_poly/scene.gltf");
-  const modelRef = useRef();
-
-  // Mouse-follow logic
-  useFrame(({ mouse }) => {
-    if (modelRef.current) {
-      modelRef.current.rotation.y = mouse.x * Math.PI / 4;
-      modelRef.current.rotation.x = -mouse.y * Math.PI / 8;
-    }
-  });
-
-  return <primitive ref={modelRef} object={gltf.scene} {...props} />;
+  return <primitive object={gltf.scene} {...props} />;
 }
 
 export default function ModelViewerWithSearch() {
-  // For loading fallback
-  const [modelLoaded, setModelLoaded] = useState(false);
-
   return (
-    <div style={{ position: "relative", width: "100vw", height: "100vh", overflow: "hidden" }}>
-      {/* Search Bar Overlay - always on top, clickable */}
-      <div
-        style={{
-          position: "absolute",
-          top: 20,
-          left: "50%",
-          transform: "translateX(-50%)",
-          zIndex: 1000,
-          width: 400,
-          background: "rgba(255,255,255,0.95)",
-          borderRadius: 8,
-          boxShadow: "0 2px 8px rgba(0,0,0,0.15)",
-          padding: 12,
-          pointerEvents: "auto",
-        }}
-      >
-        <input
-          type="text"
-          placeholder="Search..."
-          style={{
-            width: "100%",
-            padding: 8,
-            borderRadius: 4,
-            border: "1px solid #ccc",
-            fontSize: 16,
-          }}
-        />
-      </div>
-
-      {/* 3D Model Canvas - pointer events none so it never blocks UI */}
-      <div style={{ width: "100vw", height: "100vh", pointerEvents: "none", zIndex: 1, position: "absolute", top: 0, left: 0 }}>
-        <Canvas camera={{ position: [0, 2, 8], fov: 50 }}>
+    <div style={{ display: "flex", width: "100vw", height: "100vh", overflow: "hidden", alignItems: "center", background: "#f9f9f9" }}>
+      {/* 3D Model on the left, static, no pointer events */}
+      <div style={{ flex: "0 0 40%", height: "100vh", pointerEvents: "none", position: "relative", zIndex: 1 }}>
+        <Canvas camera={{ position: [0, 2, 8], fov: 50 }} style={{ background: 'transparent' }}>
           <ambientLight intensity={0.7} />
           <directionalLight position={[10, 10, 5]} intensity={1} />
           <Suspense fallback={null}>
             <MarinRobotShark position={[0, -1, 0]} />
           </Suspense>
         </Canvas>
-        {!modelLoaded && (
-          <div style={{position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', color: '#333', background: 'rgba(255,255,255,0.8)', padding: 20, borderRadius: 8, zIndex: 2000}}>
-            Loading 3D Model...
-          </div>
-        )}
+      </div>
+      {/* Search Bar and content on the right */}
+      <div style={{ flex: 1, height: "100vh", display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center", zIndex: 10, position: "relative" }}>
+        <div
+          style={{
+            width: 400,
+            background: "rgba(255,255,255,0.95)",
+            borderRadius: 8,
+            boxShadow: "0 2px 8px rgba(0,0,0,0.15)",
+            padding: 12,
+            pointerEvents: "auto",
+          }}
+        >
+          <input
+            type="text"
+            placeholder="Search..."
+            style={{
+              width: "100%",
+              padding: 8,
+              borderRadius: 4,
+              border: "1px solid #ccc",
+              fontSize: 16,
+            }}
+          />
+        </div>
       </div>
     </div>
   );
