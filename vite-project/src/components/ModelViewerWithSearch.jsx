@@ -1,4 +1,4 @@
-import React, { useRef } from "react";
+import React, { useRef, useState, Suspense } from "react";
 import { Canvas, useFrame } from "@react-three/fiber";
 import { useGLTF } from "@react-three/drei";
 
@@ -9,8 +9,6 @@ function MarinRobotShark(props) {
   // Mouse-follow logic
   useFrame(({ mouse }) => {
     if (modelRef.current) {
-      // Map mouse.x from [-1, 1] to [-Math.PI/4, Math.PI/4] (left/right)
-      // Map mouse.y from [-1, 1] to [-Math.PI/8, Math.PI/8] (up/down)
       modelRef.current.rotation.y = mouse.x * Math.PI / 4;
       modelRef.current.rotation.x = -mouse.y * Math.PI / 8;
     }
@@ -20,21 +18,25 @@ function MarinRobotShark(props) {
 }
 
 export default function ModelViewerWithSearch() {
+  // For loading fallback
+  const [modelLoaded, setModelLoaded] = useState(false);
+
   return (
-    <div style={{ position: "relative", width: "100vw", height: "100vh" }}>
-      {/* Search Bar Overlay */}
+    <div style={{ position: "relative", width: "100vw", height: "100vh", overflow: "hidden" }}>
+      {/* Search Bar Overlay - always on top, clickable */}
       <div
         style={{
           position: "absolute",
           top: 20,
           left: "50%",
           transform: "translateX(-50%)",
-          zIndex: 10,
+          zIndex: 1000,
           width: 400,
           background: "rgba(255,255,255,0.95)",
           borderRadius: 8,
           boxShadow: "0 2px 8px rgba(0,0,0,0.15)",
           padding: 12,
+          pointerEvents: "auto",
         }}
       >
         <input
@@ -50,13 +52,21 @@ export default function ModelViewerWithSearch() {
         />
       </div>
 
-      {/* 3D Model Canvas */}
-      <Canvas camera={{ position: [0, 2, 8], fov: 50 }}>
-        <ambientLight intensity={0.7} />
-        <directionalLight position={[10, 10, 5]} intensity={1} />
-        <MarinRobotShark position={[0, -1, 0]} />
-        {/* No OrbitControls, no cube, no mouse drag/scroll */}
-      </Canvas>
+      {/* 3D Model Canvas - pointer events none so it never blocks UI */}
+      <div style={{ width: "100vw", height: "100vh", pointerEvents: "none", zIndex: 1, position: "absolute", top: 0, left: 0 }}>
+        <Canvas camera={{ position: [0, 2, 8], fov: 50 }}>
+          <ambientLight intensity={0.7} />
+          <directionalLight position={[10, 10, 5]} intensity={1} />
+          <Suspense fallback={null}>
+            <MarinRobotShark position={[0, -1, 0]} />
+          </Suspense>
+        </Canvas>
+        {!modelLoaded && (
+          <div style={{position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', color: '#333', background: 'rgba(255,255,255,0.8)', padding: 20, borderRadius: 8, zIndex: 2000}}>
+            Loading 3D Model...
+          </div>
+        )}
+      </div>
     </div>
   );
 }
