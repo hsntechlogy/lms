@@ -9,10 +9,10 @@ function MarinRobotShark(props) {
 
 export default function ModelViewerWithSearch() {
   return (
-    <div style={{ display: "flex", width: "100vw", height: "100vh", overflow: "hidden", alignItems: "center", background: "#f9f9f9" }}>
-      {/* 3D Model on the left, static, no pointer events */}
-      <div style={{ flex: "0 0 40%", height: "100vh", pointerEvents: "none", position: "relative", zIndex: 1 }}>
-        <Canvas camera={{ position: [0, 2, 8], fov: 50 }} style={{ background: 'transparent' }}>
+    <div style={{ display: "flex", width: "100vw", height: "100vh", overflow: "hidden", background: "#f9f9f9" }}>
+      {/* 3D Model on the left, static, flush with left edge */}
+      <div style={{ flex: "0 0 40%", height: "100vh", pointerEvents: "none", position: "relative", zIndex: 1, display: 'flex', alignItems: 'flex-start', justifyContent: 'flex-start' }}>
+        <Canvas camera={{ position: [0, 2, 8], fov: 50 }} style={{ background: 'transparent', width: '100%', height: '100%' }}>
           <ambientLight intensity={0.7} />
           <directionalLight position={[10, 10, 5]} intensity={1} />
           <Suspense fallback={null}>
